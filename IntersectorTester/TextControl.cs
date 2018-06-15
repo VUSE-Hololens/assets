@@ -49,7 +49,8 @@ public class TextControl : MonoBehaviour {
         Vector3 p1 = new Vector3(0, 0, 0);
         Vector3 p2 = new Vector3(2, 2, 2);
         output += String.Format("Vector from two points: {0} to {1}\n", pointToStr(p1), pointToStr(p2));
-        Vector3 result = IntersectorObj.Vector(p1, p2);
+        Vector3 result = new Vector3();
+        IntersectorObj.Vector(p1, p2, ref result);
         output += String.Format("Resultant vector: {0}\n\n", pointToStr(result));
 
         // Cannot test Unity Library outside of Unity...
@@ -74,7 +75,7 @@ public class TextControl : MonoBehaviour {
         for (int i = 0; i < 8; i++)
             output += String.Format("Vector{0} {1}: ViewVector{0} (deg): {2}\n",
                 i+1, pointToStr(unitVectors[i]), viewVectorToStr(new ViewVector(unitVectors[i])));
-        output += String.Format("Vector: World Space: {0}, View-Field Local Space: {1}\n",
+        output += String.Format("Vector {0}: ViewVector (deg): {1}\n",
             pointToStr(forward), viewVectorToStr(new ViewVector(forward)));
         output += "\n";
 
@@ -88,14 +89,14 @@ public class TextControl : MonoBehaviour {
         view4.name = "ViewFieldTest4";
         ViewVector FOV4 = new ViewVector(170, 170);
         Frustum projection4 = new Frustum(view4.transform, FOV4);
-        int[,] raster4 = new int[100, 100];
+        byte[,] raster4 = new byte[100, 100];
         output += String.Format("Intersection... Raster: ({0}x{1}), Frustum FOV: ({2}x{3}), " +
             "Frustum Pos: {4}, Frustum EA's: {5}\n" +
             "Tested all 8 unit vectors, found intersection points...\n",
             raster4.GetLength(0), raster4.GetLength(1), FOV4.Theta, FOV4.Phi, 
             pointToStr(projection4.Transform.position), pointToStr(projection4.Transform.eulerAngles));
-        List<PointValue<int>> intersect = Intersector.Instance.Intersection<int>(projection4, raster4, unitVectorList);
-        foreach (PointValue<int> pv in intersect)
+        List<PointValue<byte>> intersect = Intersector.Instance.Intersection(projection4, raster4, unitVectorList);
+        foreach (PointValue<byte> pv in intersect)
             output += String.Format("Point: {0}, ViewVector: {1}\n", 
                 pointToStr(pv.Point), viewVectorToStr(new ViewVector(pv.Point)));
         output += "\n";
@@ -109,21 +110,24 @@ public class TextControl : MonoBehaviour {
         view5.name = "ViewFieldTest5";
         ViewVector FOV5 = new ViewVector(179, 179);
         Frustum projection5 = new Frustum(view5.transform, FOV5);
-        int[,] raster5 = new int[100, 100];
-        int iterations = 100000;
+        byte[,] raster5 = new byte[100, 100];
+        int iterations = 100;
         Stopwatch stopWatch = new Stopwatch();
         Vector3 boundsMin = new Vector3(-5, -5, -5);
         Vector3 boundsMax = new Vector3(5, 5, 5);
-        output += String.Format("Intersection... Raster: ({0}x{1}), Frustum FOV: ({2}x{3}). {4} Iterations...\n",
-            raster5.GetLength(0), raster5.GetLength(1), FOV5.Theta, FOV5.Phi, iterations);
         List<Vector3> randVectors = new List<Vector3>();
         for (int i = 0; i < iterations; i++)
             randVectors.Add(randomPoint(boundsMin, boundsMax, rand));
+        output += String.Format("Intersection... Raster: ({0}x{1}), Frustum FOV: ({2}x{3}). {4} Iterations...\n",
+            raster5.GetLength(0), raster5.GetLength(1), FOV5.Theta, FOV5.Phi, randVectors.Count);
+        Intersector tmp = Intersector.Instance;
+        stopWatch.Reset();
         stopWatch.Start();
-        List<PointValue<int>> result5 = Intersector.Instance.Intersection<int>(projection5, raster5, randVectors);
+        List<PointValue<byte>> result5 = tmp.Intersection(projection5, raster5, randVectors);
         stopWatch.Stop();
         long ms = (long)1000 * stopWatch.ElapsedTicks / Stopwatch.Frequency;
-        output += String.Format("Took {0} ms ({1} us / op)... {2} vectors in view\n", ms, ms / 1000, result5.Count);
+        output += String.Format("Took {0} ms ({1} us / op)... {2} vectors in view\n", ms,
+            ms / (double)iterations * 1000.0, result5.Count);
         output += "\n";
 
         // Test 6: RequiredGrid
@@ -140,11 +144,11 @@ public class TextControl : MonoBehaviour {
         view7.name = "ViewFieldTest7";
         ViewVector FOV7 = new ViewVector(170, 170);
         Frustum projection7 = new Frustum(view7.transform, FOV7);
-        string[,] raster7 = new string[100, 100];
+        byte[,] raster7 = new byte[100, 100];
         for (int i = 0; i < raster7.GetLength(0); i++)
         {
             for (int j = 0; j < raster7.GetLength(1); j++)
-                raster7[i, j] = i.ToString() + "," + j.ToString();
+                raster7[i, j] = (byte)(i + j);
         }
         output += String.Format("Created Frustum: pos: {0}, EA's {1}, FOV: {2}\n", 
             pointToStr(projection7.Transform.position), pointToStr(projection7.Transform.eulerAngles), 
@@ -160,8 +164,7 @@ public class TextControl : MonoBehaviour {
         vertices7.Add(v3);
         output += String.Format("Trying vertices: v1: {0}, v2: {1}, v3: {2}. Intersection return...\n", 
             pointToStr(v1), pointToStr(v2), pointToStr(v3));
-        List<PointValue<string>> intersectRet = Intersector.Instance.Intersection<string>(projection7,
-            raster7, vertices7);
+        List<PointValue<byte>> intersectRet = Intersector.Instance.Intersection(projection7, raster7, vertices7);
         for (int i = 0; i < intersectRet.Count; i++)
             output += String.Format("Point: {0}, Value: {1}\n", 
                 pointToStr(intersectRet[i].Point), intersectRet[i].Value);
@@ -207,12 +210,13 @@ public class TextControl : MonoBehaviour {
         for (int i = 0; i < boxCount; i++)
             vertices.Add(randomPoint(boxMin, boxMax, rand));
         // report progress
-        output += String.Format("Created wall... ({0},{0}) to ({1},{1}), z: {2}, wiggle: {3}, vertices: {4}\n",
-            wallBotLeft, wallBotLeft + wallSize, wallDistance, wallWiggle, wallCount);
+        output += String.Format("Created wall... ({0},{0}) to ({1},{1}), z: {2}, wiggle: {3}, " +
+            "vertices: {4}, resolution (m): {5}\n",
+            wallBotLeft, wallBotLeft + wallSize, wallDistance, wallWiggle, wallCount, wallRes);
         output += String.Format("Created box: {0} to {1}, vertices: {2}\n", 
             pointToStr(boxMin), pointToStr(boxMax), boxCount);
         // run intersection
-        List<PointValue<byte>> intersectRet8 = Intersector.Instance.Intersection<byte>(projection8, raster8, vertices);
+        List<PointValue<byte>> intersectRet8 = Intersector.Instance.Intersection(projection8, raster8, vertices);
         int wallCountRet = 0;
         int boxCountRet = 0;
         for (int i = 0; i < intersectRet8.Count; i++)
@@ -223,8 +227,8 @@ public class TextControl : MonoBehaviour {
             else
                 wallCountRet++;
         }
-        output += String.Format("Intersection Return... wall vertices: {0}, box vertices: {1}", 
-            wallCountRet, boxCountRet);
+        output += String.Format("Intersection Return... wall vertices: {0}/{1}, box vertices: {2}/{3}", 
+            wallCountRet, wallCount, boxCountRet, boxCount);
 
         return output;
     }
