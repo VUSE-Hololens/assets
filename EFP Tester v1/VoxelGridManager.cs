@@ -40,18 +40,10 @@ public struct Metadata
 public class VoxelGridManager : HoloToolkit.Unity.Singleton<VoxelGridManager>
 {
     /// <summary>
-    /// Control for starting point of voxGrid.
+    /// Control for Octree
     /// </summary>
     private static Vector3 startingPoint = new Vector3(0f, 0f, 0f); // meters
-
-    /// <summary>
-    /// Control for minSize for voxGrid.
-    /// </summary>
     private static float minSize = 0.1f; // meters
-
-    /// <summary>
-    /// Control for defaultSize for voxGrid.
-    /// </summary>
     private static float defaultSize = 1.0f; // meters
 
     /// <summary>
@@ -83,7 +75,7 @@ public class VoxelGridManager : HoloToolkit.Unity.Singleton<VoxelGridManager>
     /// <summary>
     /// Accessor for voxGrid metadata.
     /// </summary>
-    public Metadata about()
+    public Metadata About()
     {
         Metadata info = new Metadata(voxGrid.numComponents, voxGrid.numVoxels, voxGrid.numNonNullVoxels, voxGrid.memSize,
             voxGrid.volume, voxGrid.nonNullVolume, voxGrid.root.min, voxGrid.root.max, lastUpdate);
@@ -94,12 +86,12 @@ public class VoxelGridManager : HoloToolkit.Unity.Singleton<VoxelGridManager>
     /// Public interface for voxGrid set method.
     /// </summary>
     /// <param name="updates">
-    /// List of tuples of points, values to set.
+    /// List of points to update
     /// </param>
-    public void set(List<Vector3> points, List<byte> values)
+    public void Set(List<Vector3> points)
     {
         for (int i = 0; i < points.Count; i++)
-            voxGrid.set(points[i], values[i], updateStruct);
+            voxGrid.set(points[i], default(byte), updateStruct);
         lastUpdate = DateTime.Now;
     }
 }

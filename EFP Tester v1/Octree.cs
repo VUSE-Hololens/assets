@@ -491,7 +491,7 @@ public class Voxel<T> : OctreeComponent<T>
     /// Memory burden of a single Voxel.
     /// NOTE: ASSUMES T IS ONE BYTE ! Also assumes bool is one bit.
     /// </summary>
-    public static readonly int memSize = 6;
+    public static readonly int memSize = 130;
 
     /// <summary>
     /// Indicates if Voxel is null value.
