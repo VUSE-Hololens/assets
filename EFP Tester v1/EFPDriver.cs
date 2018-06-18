@@ -18,6 +18,8 @@ public class EFPDriver : MonoBehaviour {
     public double DriverSpeed { get; private set; } // Update(), seconds
     public double MeshManSpeed { get; private set; } // MeshManager:UpdateVertices(), seconds
     public double VoxGridManSpeed { get; private set; } // VoxelGridManager:Set(), seconds
+    // must access SpatialMappingManager.Instance in a MonoBehaviour Start() method
+    public float MeshDensity { get; private set; } // triangles/m^3
 
     // dependencies
     public MeshManager MeshMan { get; private set; }
@@ -32,8 +34,10 @@ public class EFPDriver : MonoBehaviour {
     void Start () {
         MeshMan = MeshManager.Instance;
         VoxGridMan = VoxelGridManager.Instance;
+        MeshDensity = HoloToolkit.Unity.SpatialMapping.
+            SpatialMappingManager.Instance.SurfaceObserver.TrianglesPerCubicMeter;
     }
-	
+
 	// Update is called once per frame
 	void Update () {
         StopWatch.Reset();

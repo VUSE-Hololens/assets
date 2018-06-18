@@ -204,6 +204,11 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 114737901169269860, guid: 442705d442e73fd428842a38550bc788,
+        type: 2}
+      propertyPath: TrianglesPerCubicMeter
+      value: 50
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 442705d442e73fd428842a38550bc788, type: 2}
   m_IsPrefabParent: 0

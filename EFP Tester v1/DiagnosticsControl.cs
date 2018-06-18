@@ -49,20 +49,22 @@ public class DiagnosticsControl : MonoBehaviour {
         // display MeshManager metadata
         DiagnosticsMessage += string.Format("<b>Mesh Manager</b>\n" +
             "Speed (ms): {0}\n" +
-            "Cached Meshes: {1}\n" +
-            "Cached Triangles: {2}\n" +
-            "Cached Vertices: {3}\n",
-            Math.Round(Driver.MeshManSpeed * 1000.0, 0),
+            "Density (triangles/m^3): {1}\n" +
+            "Cached Meshes: {2}\n" +
+            "Cached Triangles: {3}\n" +
+            "Cached Vertices: {4}\n",
+            Math.Round(Driver.MeshManSpeed * 1000.0, 0), Driver.MeshDensity,
             Driver.MeshMan.MeshCount, Driver.MeshMan.TriangleCount, Driver.MeshMan.VertexCount);
         // display VoxelGridManager metadata
         Metadata voxInfo = Driver.VoxGridMan.About();
         DiagnosticsMessage += string.Format("<b>Voxel Grid Manager</b>\n" +
             "Speed (ms): {0}\n" + 
-            "Grid Components: {1}\n" +
-            "Grid Voxels (non-null): {2} ({3})\n" +
-            "Grid Volume (non-null) (m^2): {4} ({5})\n" +
-            "Grid Memory Use: {6}\n",
-            Math.Round(Driver.VoxGridManSpeed * 1000.0, 0),
+            "Minimum Voxel Size (cm) {1}\n" +
+            "Grid Components: {2}\n" +
+            "Grid Voxels (non-null): {3} ({4})\n" +
+            "Grid Volume (non-null) (m^2): {5} ({6})\n" +
+            "Grid Memory Use: {7}\n",
+            Math.Round(Driver.VoxGridManSpeed * 1000.0, 0), Math.Round(VoxelGridManager.MinSizeSpec * 100.0, 0),
             voxInfo.components, voxInfo.voxels, voxInfo.nonNullVoxels, 
             Math.Round(voxInfo.volume, 1), Math.Round(voxInfo.nonNullVolume, 1), MemToStr(voxInfo.memSize));
 

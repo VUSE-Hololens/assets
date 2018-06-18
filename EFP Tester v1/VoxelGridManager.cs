@@ -61,6 +61,11 @@ public class VoxelGridManager : HoloToolkit.Unity.Singleton<VoxelGridManager>
     /// </summary>
     public DateTime lastUpdate { get; private set; }
 
+    // indicator for outside classes
+    // Necessary b/c cannot preset and assign public get, private set to variable.
+    // One readonly variable would work, but cannot be changed at runtime.
+    public static float MinSizeSpec { get; private set; }
+
     /// <summary>
     /// Constructor.
     /// NOTE: Singleton<T> enforces new constraint on T... must have public, parameterless constructor.
@@ -69,6 +74,7 @@ public class VoxelGridManager : HoloToolkit.Unity.Singleton<VoxelGridManager>
     {
         voxGrid = new Octree<byte>(startingPoint, minSize, defaultSize);
         updateStruct = true;
+        MinSizeSpec = minSize;
         lastUpdate = DateTime.Now;
     }
 
