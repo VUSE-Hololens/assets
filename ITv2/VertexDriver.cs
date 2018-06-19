@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Intersector))]
-public class VertexDriver : MonoBehaviour {
+public class VertexDriver : MonoBehaviour
+{
 
     // Inspector variables 
     public Vector3 CubeCenter = new Vector3(0, 0, 5);
@@ -39,7 +40,8 @@ public class VertexDriver : MonoBehaviour {
 
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         // finish setup
         FOV = new ViewVector(TargetFOV.x, TargetFOV.y);
         ViewField = new Frustum(Camera.main.transform, FOV);
@@ -61,7 +63,7 @@ public class VertexDriver : MonoBehaviour {
             Child.AddComponent<MeshFilter>();
             Child.AddComponent<MeshRenderer>();
             Child.AddComponent<SphereCollider>();
-            Child.name = pointToStr(Points[i]);
+            Child.name = "Marker" + i.ToString();
             Child.transform.parent = Parent.transform;
             Child.transform.position = Points[i];
             Child.transform.localScale = Scale;
@@ -71,11 +73,11 @@ public class VertexDriver : MonoBehaviour {
             {
                 GameObject VVLabelT = Instantiate(VVLabelText);
                 VVLabelT.transform.parent = Parent.transform;
-                VVLabelT.name = pointToStr(Points[i]) + "text";
+                VVLabelT.name = "Text" + i.ToString();
                 VVLabelT.transform.position = Points[i] + VVLabelOffset;
                 GameObject VVLabelB = Instantiate(VVLabelBackground);
                 VVLabelB.transform.parent = Parent.transform;
-                VVLabelB.name = pointToStr(Points[i]) + "background";
+                VVLabelB.name = "Background" + i.ToString();
                 VVLabelB.transform.position = Points[i] + VVLabelOffset + new Vector3(0, 0, 0.01f);
             }
         }
@@ -85,9 +87,10 @@ public class VertexDriver : MonoBehaviour {
         BoxParent.name = "BoxParent";
         DrawBox(CubeMin, CubeMax, BoxParent, LineSize, LineMaterial);
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update()
+    {
         // update ViewField to camera position
         ViewField.Transform.position = Camera.main.transform.position;
         ViewField.Transform.eulerAngles = Camera.main.transform.eulerAngles;
@@ -96,15 +99,13 @@ public class VertexDriver : MonoBehaviour {
         Inter.Intersection(ViewField, Points, out InView, out OutView, out VV, out Pvecs);
 
         // paint points accordingly
-        foreach (Vector3 pt in InView)
+        for (int i = 0; i < Vertices; i++)
         {
-            GameObject marker = Parent.transform.Find(pointToStr(pt)).gameObject;
-            marker.GetComponent<MeshRenderer>().material = InViewMaterial;
-        }
-        foreach (Vector3 pt in OutView)
-        {
-            GameObject marker = Parent.transform.Find(pointToStr(pt)).gameObject;
-            marker.GetComponent<MeshRenderer>().material = OutViewMaterial;
+            GameObject child = Parent.transform.Find("Marker" + i.ToString()).gameObject;
+            if (InView.FindIndex(x => x == Points[i]) != -1)
+                child.GetComponent<MeshRenderer>().material = InViewMaterial;
+            else
+                child.GetComponent<MeshRenderer>().material = OutViewMaterial;
         }
 
         if (ViewVectorLabels)
@@ -113,8 +114,8 @@ public class VertexDriver : MonoBehaviour {
             for (int i = 0; i < Points.Count; i++)
             {
                 Vector3 pt = Points[i];
-                GameObject VVLabelText = Parent.transform.Find(pointToStr(pt) + "text").gameObject;
-                VVLabelText.GetComponent<TextMesh>().text = viewVectorToStr(VV[i]) + 
+                GameObject VVLabelText = Parent.transform.Find("Text" + i.ToString()).gameObject;
+                VVLabelText.GetComponent<TextMesh>().text = viewVectorToStr(VV[i]) +
                     "\nP. vector: " + pointToStr(Pvecs[i]);
             }
         }
@@ -150,7 +151,7 @@ public class VertexDriver : MonoBehaviour {
     }
 
     public static void DrawLine(Vector3 start, Vector3 finish, GameObject parent, float width,
-        Material material, string name="")
+        Material material, string name = "")
     {
         GameObject Line = new GameObject();
         Line.name = name;
