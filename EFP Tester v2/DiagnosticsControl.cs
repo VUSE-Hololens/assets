@@ -10,22 +10,30 @@ using UnityEngine;
 public class DiagnosticsControl : MonoBehaviour {
 
     // Inspector variables
-    public GameObject DiagnosticsText;
+    [Tooltip("Prefab of diagnostic board text")]
+    public GameObject DiagTextPrefab;
+    [Tooltip("Prefab of diagnostics board background")]
+    public GameObject DiagBackgroundPrefab;
+    [Tooltip("EFP container GameObject.")]
     public GameObject EFPContainer;
+    [Tooltip("Default to showing diagnostics board?")]
+    public bool Show = true;
 
     // dependencies
+    private GameObject DiagText;
+    private GameObject DiagBackground;
     private TextMesh DiagnosticsTextMesh;
     private EFPDriver Driver;
 
     // other variables
+    private bool isShowing = false;
     private Stopwatch StopWatch = new Stopwatch();
     private long Seconds = 0;
     private StringBuilder DiagnosticsMessage = new StringBuilder(" ", 1000);
 
     // Use this for initialization
     void Start () {
-        // gather dependenices
-        DiagnosticsTextMesh = DiagnosticsText.GetComponent<TextMesh>();
+        // gather static dependenices
         Driver = EFPContainer.GetComponent<EFPDriver>();
 
         StopWatch.Start();
@@ -33,6 +41,38 @@ public class DiagnosticsControl : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        if (Show)
+        {
+            if (!isShowing)
+                CreateDiagnostics();
+
+            UpdateDiagnostics();
+            DiagnosticsTextMesh.text = DiagnosticsMessage.ToString();
+        }
+        else if (isShowing)
+            DeleteContent();
+	}
+
+    /// <summary>
+    /// Creates contents of diagnostics board as new objects.
+    /// </summary>
+    private void CreateDiagnostics()
+    {
+        // create text
+        DiagText = Instantiate(DiagTextPrefab, gameObject.transform, false);
+        DiagnosticsTextMesh = DiagText.GetComponent<TextMesh>();
+
+        // create background
+        DiagBackground = Instantiate(DiagBackgroundPrefab, gameObject.transform, false);
+
+        isShowing = true;
+    }
+
+    /// <summary>
+    /// Updates contents of DiagnosticsMessage.
+    /// </summary>
+    private void UpdateDiagnostics()
+    {
         Seconds = StopWatch.ElapsedTicks / Stopwatch.Frequency;
         DiagnosticsMessage.Remove(0, DiagnosticsMessage.Length);
 
@@ -45,9 +85,9 @@ public class DiagnosticsControl : MonoBehaviour {
         DiagnosticsMessage.AppendFormat("<b>Driver</b>\n" +
             "Speed (ms / Hz): {0} / {1}\n" +
             "Total Memory Use: {2}\n" +
-            "Elasped Time (s): {3}\n"+
+            "Elasped Time (s): {3}\n" +
             "Sensor Position: {4}, Euler Angles: {5}\n",
-            Math.Round(Driver.DriverSpeed * 1000.0, 0), Math.Round(1.0 / Driver.DriverSpeed, 1), 
+            Math.Round(Driver.DriverSpeed * 1000.0, 0), Math.Round(1.0 / Driver.DriverSpeed, 1),
             MemToStr(GC.GetTotalMemory(false)), Seconds,
             pointToStr(Driver.SensorField.Transform.position), pointToStr(Driver.SensorField.Transform.eulerAngles));
         // display MeshManager metadata
@@ -66,34 +106,43 @@ public class DiagnosticsControl : MonoBehaviour {
         DiagnosticsMessage.AppendFormat("<b>Mesh Intersector</b>\n" +
             "Speed (ms): {0}\n" +
             "Occlusion Grid Resolution: {1}cm @ {2}m\n" +
-            "Total Vertices (in FOV): {3} ({4})\n" + 
+            "Total Vertices (in FOV): {3} ({4})\n" +
             "Non-Occluded Vertices {5}\n",
             Math.Round(Driver.IntersectSpeed * 1000.0, 0), Driver.OcclusionObjSize * 100, Driver.OcclusionObjDistance,
             Driver.VertexInter.CheckedVertices, Driver.VertexInter.VerticesInView, Driver.VertexInter.NonOccludedVertices);
         // display VoxelGridManager metadata
         VoxelGridManager<byte>.Metadata voxInfo = Driver.VoxGridMan.About();
         DiagnosticsMessage.AppendFormat("<b>Voxel Grid Manager</b>\n" +
-            "Speed (ms): {0}\n" + 
+            "Speed (ms): {0}\n" +
             "Minimum Voxel Size (cm) {1}\n" +
             "Grid Components: {2}\n" +
             "Grid Voxels (non-null): {3} ({4})\n" +
             "Grid Volume (non-null) (m^2): {5} ({6})\n" +
             "Grid Memory Use: {7}\n",
             Math.Round(Driver.VoxGridManSpeed * 1000.0, 0), Math.Round(Driver.VoxGridMan.minSize * 100.0, 0),
-            voxInfo.components, voxInfo.voxels, voxInfo.nonNullVoxels, 
+            voxInfo.components, voxInfo.voxels, voxInfo.nonNullVoxels,
             Math.Round(voxInfo.volume, 1), Math.Round(voxInfo.nonNullVolume, 1), MemToStr(voxInfo.memSize));
         // display VertexVisualizer metadata
         DiagnosticsMessage.AppendFormat("<b>Vertex Visualizer</b>\n" +
             "Speed (ms): {0}\n" +
             "Rendered Mesh Vertices (total markers): {1} ({2})\n" +
-            "Mesh Bounds Vertices: {3}\n" +
-            "Mesh Bounds Lines: {4}\n",
-            Math.Round(Driver.VertVisSpeed * 1000.0, 0), 
-            Driver.VertVis.RenderedMarkers, Driver.VertVis.TotalMarkers,
-            Driver.MeshMan.BoundsVis.RenderedMarkers, Driver.MeshMan.BoundsVis.RenderedLines);
+            "Rendered Mesh-Bounds Vertices (total markers): {3} ({4})\n" +
+            "Rendered Mesh-Bounds Lines (total lines): {5} ({6})\n",
+            Math.Round(Driver.VertVisSpeed * 1000.0, 0),
+            Driver.VertVis.MarkersInUse, Driver.VertVis.TotalMarkers,
+            Driver.MeshMan.BoundsVis.MarkersInUse, Driver.MeshMan.BoundsVis.TotalMarkers,
+            Driver.MeshMan.BoundsVis.LinesInUse, Driver.MeshMan.BoundsVis.TotalLines);
+    }
 
-        DiagnosticsTextMesh.text = DiagnosticsMessage.ToString();
-	}
+    /// <summary>
+    /// Deletes objects containing contents of diagnostics board.
+    /// </summary>
+    private void DeleteContent()
+    {
+        foreach (Transform child in gameObject.transform)
+            Destroy(child.gameObject);
+        isShowing = false;
+    }
 
     /// <summary>
     /// Returns presentable string of memory size.

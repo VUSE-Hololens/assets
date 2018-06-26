@@ -24,13 +24,13 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     public bool VisualizeBounds = true;
     [Tooltip("Size of markers for intersector points of mesh bounding boxes, if rendered. Meters.")]
     public float MarkerSize = 0.05f;
-    [Tooltip("Color of markers for intersector points of mesh bounding boxes, if rendered.")]
-    public Color MarkerColor;
     [Tooltip("Width of lines of mesh bounding boxes, if rendered. Meters.")]
     public float LineSize = 0.02f;
-    [Tooltip("Color of lines of mesh bounding boxes, if rendered.")]
-    public Color LineColor;
-    
+    [Tooltip("First edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
+    public Color BoundsColor1;
+    [Tooltip("Second edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
+    public Color BoundsColor2;
+
     /// <summary>
     /// Metadata: number of independent meshes returned by SpatialMappingManager.
     /// NOTE: only updated when getVertices() is called.
@@ -75,7 +75,11 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     // other variables
     private HoloToolkit.Unity.SpatialMapping.SpatialMappingObserver observer;
     private Intersector MeshInter = new Intersector();
-    public Visualizer BoundsVis { get; private set; }
+    public Visualizer BoundsVis;
+    private List<Color> BoundColors = new List<Color>();
+
+    // indicator flags
+    private bool BoundsVisualized;
 
     /// <summary>
     /// Constructor. ONLY to be used within Singleton, elsewhere ALWAYS use Instance.
@@ -89,6 +93,7 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
         VerticesInView = 0;
 
         BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
+        BoundsVisualized = VisualizeBounds;
     }
 
     /// <summary>
@@ -110,8 +115,7 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
         List<MeshFilter> MeshFilters = observer.GetMeshFilters();
         List<MeshRenderer> MeshRenderers = observer.GetMeshRenderers();
         List<Intersector.PointValue<byte>> BoundPoints = new List<Intersector.PointValue<byte>>();
-        List<Vector3> MeshMins = new List<Vector3>();
-        List<Vector3> MeshMaxes = new List<Vector3>();
+        List<Visualizer.Content> toRender = new List<Visualizer.Content>(); 
         TotalMeshCount = 0;
         TotalTriangleCount = 0;
         TotalVertexCount = 0;
@@ -124,6 +128,10 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
                 "returned MeshRenderers count: {0} vs. {1}",
                 MeshFilters.Count, MeshRenderers.Count));
 
+        // add colors if necessary
+        while (VisualizeBounds && BoundColors.Count < MeshFilters.Count)
+            BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
+
         for (int i = 0; i < MeshFilters.Count; i++)
         {
             MeshRenderer tmpRenderer = MeshRenderers[i];
@@ -132,12 +140,6 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
             List<Vector3> ThisBoundPoints = MBounds(tmpRenderer.bounds);
             foreach (Vector3 point in ThisBoundPoints)
                 BoundPoints.Add(new Intersector.PointValue<byte>(point, default(byte)));
-            if (VisualizeBounds)
-            {
-                // setup bounding box visualization
-                MeshMins.Add(tmpRenderer.bounds.min);
-                MeshMaxes.Add(tmpRenderer.bounds.max);
-            }
 
             // check if mesh is visible
             if (MeshInter.AnyInView(ThisBoundPoints, SensorView))
@@ -154,6 +156,15 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
                 {
                     vertices.Add(tmpTransform.TransformPoint(tmpVertices[j]));
                 }
+
+                if (VisualizeBounds)
+                {
+                    // setup bounding box visualization
+                    toRender.AddRange(Visualizer.CreateMarkers(ThisBoundPoints,
+                        MarkerSize, BoundColors[i]));
+                    toRender.AddRange(Visualizer.CreateBoundingLines(tmpRenderer.bounds,
+                        LineSize, BoundColors[i]));
+                }
             }
 
             // update metadata totals
@@ -162,11 +173,29 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
             TotalVertexCount += MeshFilters[i].sharedMesh.vertices.ToList().Count();
         }
 
+        /*
+        // test code
+        BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
+        Bounds dummyBounds1 = new Bounds(new Vector3(1, 1, 1), new Vector3(1, 1, 1));
+        toRender.AddRange(Visualizer.CreateMarkers(MBounds(dummyBounds1), MarkerSize, BoundColors[0]));
+        toRender.AddRange(Visualizer.CreateBoundingLines(dummyBounds1, LineSize, BoundColors[0]));
+
+        BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
+        Bounds dummyBounds2 = new Bounds(new Vector3(-1, 1, 1), new Vector3(1, 1, 1));
+        toRender.AddRange(Visualizer.CreateMarkers(MBounds(dummyBounds2), MarkerSize, BoundColors[1]));
+        toRender.AddRange(Visualizer.CreateBoundingLines(dummyBounds2, LineSize, BoundColors[1]));
+        */
+
         if (VisualizeBounds)
         {
-            BoundsVis.VisualizePoints(BoundPoints, MarkerSize, MarkerColor, MarkerColor, 0, 255);
-            BoundsVis.VisualizeBoxes(MeshMins, MeshMaxes, LineSize, LineColor);
+            BoundsVis.Visualize(toRender);
+            BoundsVisualized = true;
+        } else if (BoundsVisualized)
+        {
+            BoundsVis.Clear();
+            BoundsVisualized = false;
         }
+
         return vertices;
     }
 

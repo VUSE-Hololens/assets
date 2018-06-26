@@ -65,11 +65,15 @@ public class EFPDriver : MonoBehaviour {
     public Intersector.Frustum SensorField = new Intersector.Frustum();
     private Stopwatch StopWatch = new Stopwatch();
     private Stopwatch SubStopWatch = new Stopwatch();
-    private Intersector.Occlusion Oc;
+    public Intersector.Occlusion Oc;
     private byte[,] SensorData;
+    private List<Visualizer.Content> VertMarkers = new List<Visualizer.Content>();
+
+    // indicator flags
+    private bool VerticesRendered;
 
     // Use this for initialization
-    void Start () {
+    void Awake () {
         // gather dependencies
         MeshMan = MeshManager.Instance;
         VoxGridMan = new VoxelGridManager<byte>(myMinSize:MinVoxelSize, myDefaultSize:DefaultVoxelSize);
@@ -80,13 +84,17 @@ public class EFPDriver : MonoBehaviour {
         SensorField.Transform = Camera.main.transform;
         SensorField.FOV = new Intersector.ViewVector((int)SensorFOV.x, (int)SensorFOV.y);
         MeshDensity = MeshMan.Density;
-        Oc = new Intersector.Occlusion(OcclusionObjSize, OcclusionObjDistance, SensorField.FOV);
         SensorData = new byte[(int)SensorPixelCount.x, (int)SensorPixelCount.y];
         for (int i = 0; i < SensorPixelCount.x; i++)
         {
             for (int j = 0; j < SensorPixelCount.y; j++)
                 SensorData[i, j] = (byte)(255f * (float)(i + j) / (SensorPixelCount.x + SensorPixelCount.y));
+
         }
+
+        // finish dependendencies setup: some variables must be created in Start()
+        MeshMan.BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
+        VerticesRendered = RenderVertices;
     }
 
 	// Update is called once per frame
@@ -105,9 +113,16 @@ public class EFPDriver : MonoBehaviour {
         SubStopWatch.Stop();
         MeshManSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
 
+        /*
+        // test code
+        Vertices.Add(new Vector3(-1, -1, 2));
+        Vertices.Add(new Vector3(1, -1, 2));
+        */
+
         // project to non-occluded vertices
         SubStopWatch.Reset();
         SubStopWatch.Start();
+        Oc = new Intersector.Occlusion(OcclusionObjSize, OcclusionObjDistance, SensorField.FOV);
         List<Intersector.PointValue<byte>> Updates = 
             VertexInter.ProjectToVisible(Vertices, SensorField, Oc, SensorData);
         SubStopWatch.Stop();
@@ -123,7 +138,17 @@ public class EFPDriver : MonoBehaviour {
         // render visible mesh vertices
         SubStopWatch.Reset();
         SubStopWatch.Start();
-        VertVis.VisualizePoints(Updates, VertexMarkerSize, MinColor, MaxColor, 0, 255);
+        if (RenderVertices)
+        {
+            VertMarkers = Visualizer.CreateMarkers(Updates, 
+                VertexMarkerSize, 0, 255, MinColor, MaxColor);
+            VertVis.Visualize(VertMarkers);
+            VerticesRendered = true;
+        } else if (VerticesRendered)
+        {
+            VertVis.Clear();
+            VerticesRendered = false;
+        }
         SubStopWatch.Stop();
         VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
 

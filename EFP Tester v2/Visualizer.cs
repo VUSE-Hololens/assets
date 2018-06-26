@@ -2,47 +2,136 @@
 /// Class for rendering various objects.
 /// Mark Scherer, June 2018
 
-
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Class for rendering various objects.
+/// Class for visualizing objects as holograms.
 /// </summary>
-public class Visualizer {
+public class Visualizer
+{
+    /// <summary>
+    /// Single item to be visualized.
+    /// </summary>
+    public abstract class Content
+    {
+        public Color color;
+
+        public Content(Color myColor)
+        {
+            color = myColor;
+        }
+    }
+
+    /// <summary>
+    /// Point marker to be visualized.
+    /// </summary>
+    public class Marker : Content
+    {
+        public Vector3 point;
+        public Vector3 scale;
+
+        public Marker(Vector3 myPoint, float radius, Color myColor)
+            : base(myColor)
+        {
+            point = myPoint;
+            scale = new Vector3(radius, radius, radius);
+        }
+    }
+
+    /// <summary>
+    /// Line to be visualized.
+    /// </summary>
+    public class Line : Content
+    {
+        public Vector3[] positions;
+        public float width;
+
+        public Line(Vector3[] myPositions, float myWidth, Color myColor)
+            : base( myColor)
+        {
+            positions = myPositions;
+            width = myWidth;
+        }
+    }
+
     // control variables
-    private string ParentName;
     private string MarkerName;
     private string LineName;
+    private GameObject Parent;
+    private string ParentName;
+    private bool ParentCreated = false;
     private Material material;
 
     // other variables
+    private List<GameObject> MarkerGOs = new List<GameObject>();
+    private List<GameObject> LineGOs = new List<GameObject>();
     private Vector3 ZeroScale = new Vector3(0, 0, 0);
-    private List<GameObject> Markers = new List<GameObject>();
-    private List<GameObject> Lines = new List<GameObject>();
-    private bool ParentCreated = false;
-    private GameObject Parent;
+    private static System.Random Rand = new System.Random();
 
-    // metadata
-    public int RenderedMarkers { get; private set; }
+    // indicators
+    public int MarkersInUse { get; private set; }
+    public int LinesInUse { get; private set; }
     public int TotalMarkers { get; private set; }
-    public int RenderedLines { get; private set; }
     public int TotalLines { get; private set; }
 
-    // constructor
     public Visualizer(string myParentName, string myMarkerName, string myLineName, Material myMaterial)
     {
         ParentName = myParentName;
         MarkerName = myMarkerName;
         LineName = myLineName;
         material = myMaterial;
+
+        // finish setup
+        MarkersInUse = 0;
+        LinesInUse = 0;
+        TotalMarkers = 0;
+        TotalLines = 0;
     }
 
     /// <summary>
-    /// Renders list of points.
+    /// Visualizes all toRender. Hides all other content.
     /// </summary>
-    public void VisualizePoints(List<Intersector.PointValue<byte>> points, float radius, 
-        Color minColor, Color maxColor, byte minValue, byte maxValue)
+    public void Visualize(List<Content> toRender)
+    {
+        MarkersInUse = 0;
+        LinesInUse = 0;
+
+        // visualize all toRender
+        foreach (Content con in toRender)
+            Visualize(con);
+
+        // hide extra GameObjects
+        for (int i = MarkersInUse; i < MarkerGOs.Count; i++)
+            HideMarker(i);
+        for (int i = LinesInUse; i < LineGOs.Count; i++)
+            HideLine(i);
+
+        TotalMarkers = MarkerGOs.Count;
+        TotalLines = LineGOs.Count;
+    }
+
+    /// <summary>
+    /// Deletes all Marker and Line GO's
+    /// </summary>
+    public void Clear()
+    {
+        Object.Destroy(Parent);
+        ParentCreated = false;
+
+        MarkerGOs = new List<GameObject>();
+        MarkersInUse = 0;
+        TotalMarkers = 0;
+
+        LineGOs = new List<GameObject>();
+        LinesInUse = 0;
+        TotalLines = 0;
+    }
+
+    /// <summary>
+    /// Visualizes an object.
+    /// </summary>
+    public void Visualize(Content con)
     {
         // create parent (if startup)
         if (!ParentCreated)
@@ -52,73 +141,68 @@ public class Visualizer {
             ParentCreated = true;
         }
 
-        Vector3 Scale = new Vector3(radius, radius, radius);
-
-        // create new marker game objects (if nec)
-        while (points.Count > Markers.Count)
-            Markers.Add(NewMarker());
-
-        // reassign markers to current vertices
-        for (int i = 0; i < points.Count; i++)
-        {
-            Markers[i].transform.position = points[i].Point;
-            Markers[i].transform.localScale = Scale;
-            Markers[i].GetComponent<MeshRenderer>().material.color = 
-                ScaleColor(Fraction(points[i].Value, minValue, maxValue), minColor, maxColor);
-        }
-
-        // remove remaining markers from view
-        for (int i = points.Count; i < Markers.Count; i++)
-            Markers[i].transform.localScale = ZeroScale;
-
-        RenderedMarkers = points.Count;
-        TotalMarkers = Markers.Count;
+        if (con.GetType() == typeof(Marker))
+            VisualizeMarker((Marker)con);
+        else
+            VisualizeLine((Line)con);
     }
 
     /// <summary>
-    /// Renders list of bounding boxes defined by (mins, maxes).
+    /// Returns color scaled between minColor and maxColor in proportion to 
+        /// scaling of value between minValue and maxValue.
     /// </summary>
-    public void VisualizeBoxes(List<Vector3> mins, List<Vector3> maxes, float width, Color color)
+    public static Color ScaleColor(byte value, byte minValue, byte maxValue, Color minColor, Color maxColor)
     {
-        // create parent (if startup)
-        if (!ParentCreated)
+        float fraction = (float)(value - minValue) / (maxValue - minValue);
+        return ColorScale(fraction, minColor, maxColor);
+    }
+
+    /// <summary>
+    /// Returns random color between minColor and maxColor.
+    /// </summary>
+    public static Color RandomColor(Color minColor, Color maxColor)
+    {
+        return new Color(ScaleFloat((float)Rand.NextDouble(), minColor.r, maxColor.r),
+            ScaleFloat((float)Rand.NextDouble(), minColor.g, maxColor.g),
+            ScaleFloat((float)Rand.NextDouble(), minColor.b, maxColor.b),
+            ScaleFloat((float)Rand.NextDouble(), minColor.a, maxColor.a));
+    }
+
+    public static List<Content> CreateMarkers(List<Intersector.PointValue<byte>> pointValues, float radius, 
+        byte minValue, byte maxValue, Color minColor, Color maxColor)
+    {
+        List<Content> result = new List<Content>();
+
+        foreach (Intersector.PointValue<byte> pv in pointValues)
         {
-            Parent = new GameObject();
-            Parent.name = ParentName;
-            ParentCreated = true;
+            result.Add(new Marker(pv.Point, radius, 
+                ScaleColor(pv.Value, minValue, maxValue, minColor, maxColor)));
         }
 
+        return result;
+    }
+
+    public static List<Content> CreateMarkers(List<Vector3> points, float radius, Color color)
+    {
+        List<Content> result = new List<Content>();
+
+        foreach (Vector3 pt in points)
+        {
+            result.Add(new Marker(pt, radius, color));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns list of monochromatic lines bounding bounds.
+    /// </summary>
+    public static List<Content> CreateBoundingLines(Bounds bounds, float width, Color color)
+    {
+        List<Content> result = new List<Content>();
         List<Vector3[]> positions = new List<Vector3[]>();
-        for (int i = 0; i < mins.Count; i++)
-        {
-            positions.AddRange(BoxLines(mins[i], maxes[i]));
-        }
-
-        while (positions.Count > Lines.Count)
-            Lines.Add(NewLine());
-
-        // reassign lines to current boxes
-        for (int i = 0; i < positions.Count; i++)
-        {
-            Lines[i].GetComponent<LineRenderer>().SetPositions(positions[i]);
-            Lines[i].GetComponent<LineRenderer>().widthMultiplier = width;
-            Lines[i].GetComponent<MeshRenderer>().material.color = color;
-        }
-
-        // remove remaining lines from view
-        for (int i = positions.Count; i < Lines.Count; i++)
-            Lines[i].GetComponent<LineRenderer>().widthMultiplier = 0;
-
-        RenderedLines = mins.Count;
-        TotalLines = Lines.Count;
-    }
-
-    /// <summary>
-    /// Returns bounding lines for box (min, max).
-    /// </summary>
-    private List<Vector3[]> BoxLines(Vector3 min, Vector3 max)
-    {
-        List<Vector3[]> result = new List<Vector3[]>();
+        Vector3 min = bounds.min;
+        Vector3 max = bounds.max;
 
         // create points
         Vector3 frontbotleft = min;
@@ -131,91 +215,154 @@ public class Visualizer {
         Vector3 backtopright = max;
 
         // add bottom face
-        result.Add(new Vector3[] { frontbotleft, frontbotright });
-        result.Add(new Vector3[] { frontbotright, backbotright });
-        result.Add(new Vector3[] { backbotright, backbotleft });
-        result.Add(new Vector3[] { backbotleft, frontbotleft });
+        positions.Add(new Vector3[] { frontbotleft, frontbotright });
+        positions.Add(new Vector3[] { frontbotright, backbotright });
+        positions.Add(new Vector3[] { backbotright, backbotleft });
+        positions.Add(new Vector3[] { backbotleft, frontbotleft });
         // add top face
-        result.Add(new Vector3[] { fronttopleft, fronttopright });
-        result.Add(new Vector3[] { fronttopright, backtopright });
-        result.Add(new Vector3[] { backtopright, backtopleft });
-        result.Add(new Vector3[] { backtopleft, fronttopleft });
+        positions.Add(new Vector3[] { fronttopleft, fronttopright });
+        positions.Add(new Vector3[] { fronttopright, backtopright });
+        positions.Add(new Vector3[] { backtopright, backtopleft });
+        positions.Add(new Vector3[] { backtopleft, fronttopleft });
         // add verticals
-        result.Add(new Vector3[] { frontbotleft, fronttopleft });
-        result.Add(new Vector3[] { frontbotright, fronttopright });
-        result.Add(new Vector3[] { backbotleft, backtopleft });
-        result.Add(new Vector3[] { backbotright, backtopright });
+        positions.Add(new Vector3[] { frontbotleft, fronttopleft });
+        positions.Add(new Vector3[] { frontbotright, fronttopright });
+        positions.Add(new Vector3[] { backbotleft, backtopleft });
+        positions.Add(new Vector3[] { backbotright, backtopright });
         // add outer diagonals 1
-        result.Add(new Vector3[] { frontbotleft, fronttopright});
-        result.Add(new Vector3[] { frontbotright, backtopright});
-        result.Add(new Vector3[] { backbotright, backtopleft});
-        result.Add(new Vector3[] { backbotleft, fronttopleft});
-        result.Add(new Vector3[] { fronttopleft, backtopright});
-        result.Add(new Vector3[] { frontbotright, backbotleft});
+        positions.Add(new Vector3[] { frontbotleft, fronttopright });
+        positions.Add(new Vector3[] { frontbotright, backtopright });
+        positions.Add(new Vector3[] { backbotright, backtopleft });
+        positions.Add(new Vector3[] { backbotleft, fronttopleft });
+        positions.Add(new Vector3[] { fronttopleft, backtopright });
+        positions.Add(new Vector3[] { frontbotright, backbotleft });
         // add outer diagonals 2
-        result.Add(new Vector3[] { frontbotright, fronttopleft });
-        result.Add(new Vector3[] { backbotright, fronttopright});
-        result.Add(new Vector3[] { backbotleft, backtopright});
-        result.Add(new Vector3[] { frontbotleft, backtopleft});
-        result.Add(new Vector3[] { fronttopright, backtopleft});
-        result.Add(new Vector3[] { frontbotleft, backbotright});
+        positions.Add(new Vector3[] { frontbotright, fronttopleft });
+        positions.Add(new Vector3[] { backbotright, fronttopright });
+        positions.Add(new Vector3[] { backbotleft, backtopright });
+        positions.Add(new Vector3[] { frontbotleft, backtopleft });
+        positions.Add(new Vector3[] { fronttopright, backtopleft });
+        positions.Add(new Vector3[] { frontbotleft, backbotright });
         // add inner diagonals
-        result.Add(new Vector3[] { frontbotleft, backtopright});
-        result.Add(new Vector3[] { frontbotright, backtopleft});
+        positions.Add(new Vector3[] { frontbotleft, backtopright });
+        positions.Add(new Vector3[] { frontbotright, backtopleft });
+
+        for (int i = 0; i < positions.Count; i++)
+        {
+            result.Add(new Line(positions[i], width, color));
+        }
 
         return result;
     }
 
+    /// <summary>
+    /// Visualizes a Marker object.
+    /// </summary>
+    private void VisualizeMarker(Marker marker)
+    {
+        // create new Marker GameObject if needed
+        if (MarkersInUse == MarkerGOs.Count)
+            MarkerGOs.Add(NewMarker());
+
+        // assign marker properties
+        MarkerGOs[MarkersInUse].transform.position = marker.point;
+        MarkerGOs[MarkersInUse].transform.localScale = marker.scale;
+        MarkerGOs[MarkersInUse].GetComponent<Renderer>().sharedMaterial.color = marker.color;
+
+        MarkersInUse++;
+    }
+
+    // Hides marker at index in MarkerGOs
+    private void HideMarker(int index)
+    {
+        MarkerGOs[index].transform.localScale = ZeroScale;
+    }
+
+    /// <summary>
+    /// Visualizes a Line object.
+    /// </summary>
+    private void VisualizeLine(Line line)
+    {
+        // create new Line GameObject if needed
+        if (LinesInUse == LineGOs.Count)
+            LineGOs.Add(NewLine());
+
+        // assign line properties
+        LineGOs[LinesInUse].GetComponent<LineRenderer>().SetPositions(line.positions);
+        LineGOs[LinesInUse].GetComponent<LineRenderer>().widthMultiplier = line.width;
+        LineGOs[LinesInUse].GetComponent<Renderer>().sharedMaterial.color = line.color;
+
+        LinesInUse++;
+    }
+
+    /// <summary>
+    /// Hides Line obj at index of LineGOs.
+    /// </summary>
+    private void HideLine(int index)
+    {
+        LineGOs[LinesInUse].GetComponent<LineRenderer>().widthMultiplier = 0;
+    }
+
+
+    /// <summary>
+    /// Creates new Marker GameObject.
+    /// </summary>
     private GameObject NewMarker()
     {
         GameObject Child = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
         if (Child.GetComponent<MeshFilter>() == null)
             Child.AddComponent<MeshFilter>();
         if (Child.GetComponent<MeshRenderer>() == null)
             Child.AddComponent<MeshRenderer>();
         if (Child.GetComponent<SphereCollider>() == null)
             Child.AddComponent<SphereCollider>();
+
         Child.name = MarkerName;
         Child.transform.parent = Parent.transform;
-        Child.GetComponent<Renderer>().material = material;
-        return Child;
-    }
+        Child.GetComponent<Renderer>().material = Material.Instantiate(material);
 
-    private GameObject NewLine()
-    {
-        GameObject Child = new GameObject();
-        if (Child.GetComponent<LineRenderer>() == null)
-            Child.AddComponent<LineRenderer>();
-        Child.name = LineName;
-        Child.transform.parent = Parent.transform;
-        Child.GetComponent<Renderer>().material = material;
         return Child;
     }
 
     /// <summary>
-    /// Returns Color scaled between min and max according to fraction (0-1)
+    /// Creates new Line GameObject.
     /// </summary>
-    private Color ScaleColor(float fraction, Color min, Color max)
+    private GameObject NewLine()
     {
+        GameObject Child = new GameObject();
 
+        if (Child.GetComponent<LineRenderer>() == null)
+            Child.AddComponent<LineRenderer>();
+
+        Child.name = LineName;
+        Child.transform.parent = Parent.transform;
+        Child.GetComponent<Renderer>().material = Material.Instantiate(material);
+
+        return Child;
+    }
+
+    /// <summary>
+    /// Returns color at fraction on scale between minColor and maxColor
+    /// </summary>
+    private static Color ColorScale(float fraction, Color minColor, Color maxColor)
+    {
         if (fraction < 0 || fraction > 1)
             throw new System.ArgumentOutOfRangeException("fraction", "not 0-1");
 
         Color result = new Color();
-        result.a = ScaleFraction(fraction, min.a, max.a);
-        result.r = ScaleFraction(fraction, min.r, max.r);
-        result.g = ScaleFraction(fraction, min.g, max.g);
-        result.b = ScaleFraction(fraction, min.b, max.b);
+        result.a = ScaleFloat(fraction, minColor.a, maxColor.a);
+        result.r = ScaleFloat(fraction, minColor.r, maxColor.r);
+        result.g = ScaleFloat(fraction, minColor.g, maxColor.g);
+        result.b = ScaleFloat(fraction, minColor.b, maxColor.b);
         return result;
     }
 
-    private float ScaleFraction(float fraction, float min, float max)
+    /// <summary>
+    /// Returns value at fraction on scale between min and max.
+    /// </summary>
+    private static float ScaleFloat(float fraction, float min, float max)
     {
         return min + fraction * (max - min);
-    }
-
-    private float Fraction(float value, float min, float max)
-    {
-        return (value - min) / (max - min);
     }
 }
