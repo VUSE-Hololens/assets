@@ -77,8 +77,8 @@ public class MenuControl : MonoBehaviour
     /// </summary>
     private void ToggleDiag(GameObject button)
     {
-        DiagParent.GetComponent<DiagnosticsControl>().Show = 
-            !DiagParent.GetComponent<DiagnosticsControl>().Show;
+        DiagParent.GetComponent<DiagnosticsControl>().ShowBoard = 
+            !DiagParent.GetComponent<DiagnosticsControl>().ShowBoard;
 
         UpdateDiagLabel();
     }
@@ -91,7 +91,7 @@ public class MenuControl : MonoBehaviour
         string On = "Hide Diagnostics";
         string Off = "Show Diagnostics";
 
-        if (DiagParent.GetComponent<DiagnosticsControl>().Show)
+        if (DiagParent.GetComponent<DiagnosticsControl>().ShowBoard)
             DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = On;
         else
             DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Off;
@@ -102,7 +102,7 @@ public class MenuControl : MonoBehaviour
     /// </summary>
     private void ToggleVerts(GameObject button)
     {
-        VertParent.GetComponent<EFPDriver>().RenderVertices = !VertParent.GetComponent<EFPDriver>().RenderVertices;
+        VertParent.GetComponent<EFPDriver>().RenderVerts = !VertParent.GetComponent<EFPDriver>().RenderVerts;
 
         UpdateVertLabel();
     }
@@ -115,7 +115,7 @@ public class MenuControl : MonoBehaviour
         string On = "Hide Vertices";
         string Off = "Show Vertices";
 
-        if (VertParent.GetComponent<EFPDriver>().RenderVertices)
+        if (VertParent.GetComponent<EFPDriver>().RenderVerts)
             VertButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = On;
         else
             VertButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Off;
@@ -126,8 +126,7 @@ public class MenuControl : MonoBehaviour
     /// </summary>
     private void ToggleBounds(GameObject button)
     {
-        BoundsParent.GetComponent<EFPDriver>().MeshMan.VisualizeBounds = 
-            !BoundsParent.GetComponent<EFPDriver>().MeshMan.VisualizeBounds;
+        BoundsParent.GetComponent<EFPDriver>().MeshMan.VB = !BoundsParent.GetComponent<EFPDriver>().MeshMan.VB;
 
         UpdateBoundsLabel();
     }
@@ -140,7 +139,7 @@ public class MenuControl : MonoBehaviour
         string On = "Hide Mesh Bounds";
         string Off = "Show Mesh Bounds";
 
-        if (BoundsParent.GetComponent<EFPDriver>().MeshMan.VisualizeBounds)
+        if (BoundsParent.GetComponent<EFPDriver>().MeshMan.VB)
             BoundsButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = On;
         else
             BoundsButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Off;

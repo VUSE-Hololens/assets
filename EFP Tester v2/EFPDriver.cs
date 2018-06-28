@@ -13,6 +13,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using HoloToolkit.Unity.SpatialMapping;
 
 [RequireComponent(typeof(MeshManager))]
 public class EFPDriver : MonoBehaviour {
@@ -38,8 +39,8 @@ public class EFPDriver : MonoBehaviour {
     [Tooltip("Size of new voxels when growing grid. Meters.")]
     public float DefaultVoxelSize = 1f;
     // Inspector variables: mesh vertex rendering controls
-    [Tooltip("Render non-occluded mesh vertices?")]
-    public bool RenderVertices = true;
+    [Tooltip("Default to rendering non-occluded mesh vertices?")]
+    public bool DefaultRenderVerts = true;
     [Tooltip("Size of markers of mesh vertices, if rendered. Meters.")]
     public float VertexMarkerSize = 0.05f;
     [Tooltip("Color of markers for vertices with min value, if rendered.")]
@@ -60,6 +61,7 @@ public class EFPDriver : MonoBehaviour {
     public VoxelGridManager<byte> VoxGridMan { get; private set; }
     public Visualizer VertVis { get; private set; }
     public Intersector VertexInter { get; private set; }
+    public SpatialMappingObserver Observer { get; private set; }
 
     // pre-declarations
     public Intersector.Frustum SensorField = new Intersector.Frustum();
@@ -72,6 +74,26 @@ public class EFPDriver : MonoBehaviour {
     // indicator flags
     private bool VerticesRendered;
 
+    // control over vertice rendering
+    public bool RenderVerts
+    {
+        get
+        {
+            return VerticesRendered;
+        }
+        set
+        {
+            if (value != VerticesRendered)
+                if (value)
+                    VerticesRendered = true; // vertices created on next Update cycle
+                else
+                {
+                    VertVis.Clear();
+                    VerticesRendered = false;
+                }
+        }
+    }
+
     // Use this for initialization
     void Awake () {
         // gather dependencies
@@ -79,6 +101,7 @@ public class EFPDriver : MonoBehaviour {
         VoxGridMan = new VoxelGridManager<byte>(myMinSize:MinVoxelSize, myDefaultSize:DefaultVoxelSize);
         VertVis = new Visualizer("VertexMarkers", "Marker", "Line", DefaultMaterial);
         VertexInter = new Intersector();
+        Observer = GetComponent<SpatialMappingObserver>();
 
         // finish setup
         SensorField.Transform = Camera.main.transform;
@@ -94,7 +117,7 @@ public class EFPDriver : MonoBehaviour {
 
         // finish dependendencies setup: some variables must be created in Start()
         MeshMan.BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
-        VerticesRendered = RenderVertices;
+        VerticesRendered = DefaultRenderVerts;
     }
 
 	// Update is called once per frame
@@ -108,23 +131,17 @@ public class EFPDriver : MonoBehaviour {
         // update visible mesh vertices
         SubStopWatch.Reset();
         SubStopWatch.Start();
-        List<Vector3> Vertices = MeshMan.UpdateVertices(SensorField);
+        List<bool> MeshGuide = MeshMan.UpdateVertices(SensorField);
         MeshDensity = MeshMan.Density;
         SubStopWatch.Stop();
         MeshManSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
-
-        /*
-        // test code
-        Vertices.Add(new Vector3(-1, -1, 2));
-        Vertices.Add(new Vector3(1, -1, 2));
-        */
 
         // project to non-occluded vertices
         SubStopWatch.Reset();
         SubStopWatch.Start();
         Oc = new Intersector.Occlusion(OcclusionObjSize, OcclusionObjDistance, SensorField.FOV);
         List<Intersector.PointValue<byte>> Updates = 
-            VertexInter.ProjectToVisible(Vertices, SensorField, Oc, SensorData);
+            VertexInter.ProjectToVisible(Observer.ExtraData, MeshGuide, SensorField, Oc, SensorData);
         SubStopWatch.Stop();
         IntersectSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
 
@@ -138,16 +155,11 @@ public class EFPDriver : MonoBehaviour {
         // render visible mesh vertices
         SubStopWatch.Reset();
         SubStopWatch.Start();
-        if (RenderVertices)
+        if (RenderVerts)
         {
             VertMarkers = Visualizer.CreateMarkers(Updates, 
                 VertexMarkerSize, 0, 255, MinColor, MaxColor);
             VertVis.Visualize(VertMarkers);
-            VerticesRendered = true;
-        } else if (VerticesRendered)
-        {
-            VertVis.Clear();
-            VerticesRendered = false;
         }
         SubStopWatch.Stop();
         VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;

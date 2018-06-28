@@ -251,7 +251,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1912410822348200}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.75, z: 0}
+  m_LocalPosition: {x: 0, y: -0.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4164044358336544}
@@ -311,7 +311,7 @@ Transform:
   m_GameObject: {fileID: 1224009212971272}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.010159969}
-  m_LocalScale: {x: 1, y: 1, z: 1.5}
+  m_LocalScale: {x: 0.75, y: 0.75, z: 0.9}
   m_Children: []
   m_Father: {fileID: 4164044358336544}
   m_RootOrder: 2
@@ -688,14 +688,14 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1023990074327746}
-  m_Text: <b>Occlusion Object Size</b>
+  m_Text: Occlusion Object Size (cm)
   m_OffsetZ: 0
   m_CharacterSize: 1
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 36
+  m_FontSize: 30
   m_FontStyle: 0
   m_RichText: 1
   m_Font: {fileID: 12800000, guid: 86574c70442309b45be5a1c37a37a40b, type: 3}
@@ -716,7 +716,7 @@ TextMesh:
   m_Anchor: 4
   m_Alignment: 1
   m_TabSize: 4
-  m_FontSize: 42
+  m_FontSize: 30
   m_FontStyle: 0
   m_RichText: 1
   m_Font: {fileID: 12800000, guid: 86574c70442309b45be5a1c37a37a40b, type: 3}
@@ -779,13 +779,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tag: sliderLabelColor
-  Default: {r: 1, g: 1, b: 1, a: 1}
-  Focus: {r: 1, g: 1, b: 1, a: 1}
-  Press: {r: 1, g: 1, b: 1, a: 1}
-  Selected: {r: 1, g: 1, b: 1, a: 1}
-  FocusSelected: {r: 1, g: 1, b: 1, a: 1}
-  PressSelected: {r: 1, g: 1, b: 1, a: 1}
-  Disabled: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+  Default: {r: 0, g: 0, b: 0, a: 1}
+  Focus: {r: 0, g: 0, b: 0, a: 1}
+  Press: {r: 0, g: 0, b: 0, a: 1}
+  Selected: {r: 0, g: 0, b: 0, a: 1}
+  FocusSelected: {r: 0, g: 0, b: 0, a: 1}
+  PressSelected: {r: 0, g: 0, b: 0, a: 1}
+  Disabled: {r: 0, g: 0, b: 0, a: 1}
   DisabledSelected: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 1}
   CurrentValue: {r: 0, g: 0, b: 0, a: 0}
   Button: {fileID: 0}
@@ -877,7 +877,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InteractiveHost: {fileID: 0}
-  ColorThemeTag: sliderLabelColor
+  ColorThemeTag: defaultColor
   PositionThemeTag: defaultPosition
   ScaleThemeTag: defaultScale
   ColorBlender: {fileID: 0}
@@ -931,14 +931,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tag: sliderLabelPos
-  Default: {x: 0, y: -0.15, z: 0}
-  Focus: {x: 0, y: -0.15, z: 0}
-  Press: {x: 0, y: -0.15, z: 0}
-  Selected: {x: 0, y: -0.15, z: 0}
-  FocusSelected: {x: 0, y: -0.15, z: 0}
-  PressSelected: {x: 0, y: -0.15, z: 0}
-  Disabled: {x: 0, y: -0.15, z: 0}
-  DisabledSelected: {x: 0, y: -0.15, z: 0}
+  Default: {x: 0, y: -0.1, z: 0}
+  Focus: {x: 0, y: -0.1, z: 0}
+  Press: {x: 0, y: -0.1, z: 0}
+  Selected: {x: 0, y: -0.1, z: 0}
+  FocusSelected: {x: 0, y: -0.1, z: 0}
+  PressSelected: {x: 0, y: -0.1, z: 0}
+  Disabled: {x: 0, y: -0.1, z: 0}
+  DisabledSelected: {x: 0, y: -0.1, z: 0}
   CurrentValue: {x: 0, y: 0, z: 0}
   Button: {fileID: 0}
 --- !u!114 &114471746839941986
@@ -1055,14 +1055,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tag: titleLabelPos
-  Default: {x: 0, y: 0.15, z: 0}
-  Focus: {x: 0, y: 0.15, z: 0}
-  Press: {x: 0, y: 0.15, z: 0}
-  Selected: {x: 0, y: 0.15, z: 0}
-  FocusSelected: {x: 0, y: 0.15, z: 0}
-  PressSelected: {x: 0, y: 0.15, z: 0}
-  Disabled: {x: 0, y: 0.15, z: 0}
-  DisabledSelected: {x: 0, y: 0.15, z: 0}
+  Default: {x: 0, y: 0.1, z: 0}
+  Focus: {x: 0, y: 0.1, z: 0}
+  Press: {x: 0, y: 0.1, z: 0}
+  Selected: {x: 0, y: 0.1, z: 0}
+  FocusSelected: {x: 0, y: 0.1, z: 0}
+  PressSelected: {x: 0, y: 0.1, z: 0}
+  Disabled: {x: 0, y: 0.1, z: 0}
+  DisabledSelected: {x: 0, y: 0.1, z: 0}
   CurrentValue: {x: 0, y: 0, z: 0}
   Button: {fileID: 0}
 --- !u!114 &114733909944517256

@@ -17,7 +17,7 @@ public class DiagnosticsControl : MonoBehaviour {
     [Tooltip("EFP container GameObject.")]
     public GameObject EFPContainer;
     [Tooltip("Default to showing diagnostics board?")]
-    public bool Show = true;
+    public bool DefaultToShow = true;
 
     // dependencies
     private GameObject DiagText;
@@ -26,31 +26,57 @@ public class DiagnosticsControl : MonoBehaviour {
     private EFPDriver Driver;
 
     // other variables
-    private bool isShowing = false;
     private Stopwatch StopWatch = new Stopwatch();
     private long Seconds = 0;
     private StringBuilder DiagnosticsMessage = new StringBuilder(" ", 1000);
+
+    // board visibility flag
+    private bool BoardExists;
+
+    // control over board visibility
+    public bool ShowBoard
+    {
+        get
+        {
+            return BoardExists;
+        }
+        set
+        {
+            if (value != BoardExists)
+            {
+                if (value)
+                {
+                    CreateDiagnostics();
+                    BoardExists = true;
+                } else
+                {
+                    DeleteContent();
+                    BoardExists = false;
+                }
+
+            }
+        }
+    }
 
     // Use this for initialization
     void Start () {
         // gather static dependenices
         Driver = EFPContainer.GetComponent<EFPDriver>();
 
+        BoardExists = DefaultToShow;
+        if (ShowBoard)
+            CreateDiagnostics();
+
         StopWatch.Start();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (Show)
+        if (ShowBoard)
         {
-            if (!isShowing)
-                CreateDiagnostics();
-
             UpdateDiagnostics();
             DiagnosticsTextMesh.text = DiagnosticsMessage.ToString();
         }
-        else if (isShowing)
-            DeleteContent();
 	}
 
     /// <summary>
@@ -58,14 +84,23 @@ public class DiagnosticsControl : MonoBehaviour {
     /// </summary>
     private void CreateDiagnostics()
     {
+        // double check board does not exist
+
         // create text
         DiagText = Instantiate(DiagTextPrefab, gameObject.transform, false);
         DiagnosticsTextMesh = DiagText.GetComponent<TextMesh>();
 
         // create background
         DiagBackground = Instantiate(DiagBackgroundPrefab, gameObject.transform, false);
+    }
 
-        isShowing = true;
+    /// <summary>
+    /// Deletes objects containing contents of diagnostics board.
+    /// </summary>
+    private void DeleteContent()
+    {
+        foreach (Transform child in gameObject.transform)
+            Destroy(child.gameObject);
     }
 
     /// <summary>
@@ -132,16 +167,6 @@ public class DiagnosticsControl : MonoBehaviour {
             Driver.VertVis.MarkersInUse, Driver.VertVis.TotalMarkers,
             Driver.MeshMan.BoundsVis.MarkersInUse, Driver.MeshMan.BoundsVis.TotalMarkers,
             Driver.MeshMan.BoundsVis.LinesInUse, Driver.MeshMan.BoundsVis.TotalLines);
-    }
-
-    /// <summary>
-    /// Deletes objects containing contents of diagnostics board.
-    /// </summary>
-    private void DeleteContent()
-    {
-        foreach (Transform child in gameObject.transform)
-            Destroy(child.gameObject);
-        isShowing = false;
     }
 
     /// <summary>

@@ -10,6 +10,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using HoloToolkit.Unity.SpatialMapping;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 
 /// <summary>
@@ -221,83 +224,69 @@ public class Intersector
     public int NonOccludedVertices { get; private set; }
 
     /// <summary>
-    /// Returns true if any of points are within ViewField
+    /// Returns true if any of points are within ViewField.
+    /// DOES NOT update metadata.
     /// </summary>
     public bool AnyInView(List<Vector3> points, Frustum viewField)
     {
-        int inView = 0;
-
         foreach (Vector3 pt in points)
             if (viewField.FOV.Contains(viewField.ViewVec(pt)))
-                inView++;
-
-        CheckedVertices = points.Count;
-        VerticesInView = inView;
-        NonOccludedVertices = -1;
-
-        return inView > 0;
+                return true;
+        return false;
     }
 
     /// <summary>
     /// Returns list of PointValues representing raster values projected onto visible points from viewField.
     /// </summary>
-    public List<PointValue<T>> ProjectToVisible<T>(List<Vector3> points, Frustum viewField, Occlusion oc, T[,] raster)
-    {
-        // Note: metadata updated within call to AllInView().
-        // must make throwaway lists for extra AllInView data.
-        List<Vector3> occluded = new List<Vector3>();
-        List<Vector3> notInView = new List<Vector3>();
-        List<Vector3> Pvecs = new List<Vector3>();
-        List<ViewVector> VVecs = new List<ViewVector>();
-        List<Vector3> visible = AllInView(points, viewField, oc, ref occluded, ref notInView, ref Pvecs, ref VVecs);
+    public List<PointValue<T>> ProjectToVisible<T>(List<SurfacePoints> extras, List<bool> meshGuide, Frustum viewField, Occlusion oc, T[,] raster)
+    {   
+        // reset metadata
+        CheckedVertices = 0;
+        VerticesInView = 0;
+        NonOccludedVertices = 0;
+
+        // gather visible vertices from all meshes
+        List<Vector3> visible = AllInView(extras, meshGuide, viewField, oc);
+        
+        // project to visible
         return Project<T>(visible, viewField, raster);
     }
 
     /// <summary>
     /// Returns list of all points in viewField using oc for occlusion approximation.
     /// Will update occluded and notInView to lists of vertices in those categories.
+    /// NOTE: clearing lists, resetting metadata must be done BEFORE calling method.
     /// </summary>
-    public List<Vector3> AllInView(List<Vector3> points, Frustum viewField, Occlusion oc,
-        ref List<Vector3> occluded, ref List<Vector3> notInView,
-        ref List<Vector3> Pvectors, ref List<ViewVector> VVecs)
+    public List<Vector3> AllInView(List<SurfacePoints> extras, List<bool> meshGuide, Frustum viewField, Occlusion oc)
     {
-        occluded.Clear();
-        notInView.Clear();
-        Pvectors.Clear();
-        VVecs.Clear();
-        oc.Reset();
-
-        VerticesInView = 0;
-        NonOccludedVertices = 0;
-
-        foreach (Vector3 pt in points)
+        for (int i = 0; i < extras.Count; i++)
         {
-            Vector3 Pvec = Vector(viewField.Transform.position, pt);
-            Pvectors.Add(Pvec);
-            ViewVector vv = viewField.ViewVec(pt);
-            VVecs.Add(vv);
-            if (viewField.FOV.Contains(vv))
+            // check visibility
+            if (meshGuide[i])
             {
-                Vector2 coords = vv.Map<Occlusion.OcclusionCell>(oc.grid, viewField.FOV);
-
-                if (oc.grid[(int)coords.x, (int)coords.y].nullCell ||
-                    Pvec.magnitude < oc.grid[(int)coords.x, (int)coords.y].distance)
+                foreach (Vector3 pt in extras[i].Wvertices)
                 {
-                    if (!oc.grid[(int)coords.x, (int)coords.y].nullCell)
-                        occluded.Add(oc.grid[(int)coords.x, (int)coords.y].closest);
-                    oc.grid[(int)coords.x, (int)coords.y].closest = pt;
-                    oc.grid[(int)coords.x, (int)coords.y].distance = Pvec.magnitude;
-                    oc.grid[(int)coords.x, (int)coords.y].nullCell = false;
-                    NonOccludedVertices++;
+                    Vector3 Pvec = Vector(viewField.Transform.position, pt);
+                    ViewVector vv = viewField.ViewVec(pt);
+
+                    if (viewField.FOV.Contains(vv))
+                    {
+                        Vector2 coords = vv.Map<Occlusion.OcclusionCell>(oc.grid, viewField.FOV);
+
+                        if (oc.grid[(int)coords.x, (int)coords.y].nullCell ||
+                            Pvec.magnitude < oc.grid[(int)coords.x, (int)coords.y].distance)
+                        {
+                            oc.grid[(int)coords.x, (int)coords.y].closest = pt;
+                            oc.grid[(int)coords.x, (int)coords.y].distance = Pvec.magnitude;
+                            oc.grid[(int)coords.x, (int)coords.y].nullCell = false;
+                            NonOccludedVertices++;
+                        }
+                        VerticesInView++;
+                    }
+                    CheckedVertices++;
                 }
-                else
-                    occluded.Add(pt);
-                VerticesInView++;
             }
-            else
-                notInView.Add(pt);
         }
-        CheckedVertices = points.Count;
         return oc.Points();
     }
 

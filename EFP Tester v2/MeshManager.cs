@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using HoloToolkit.Unity.SpatialMapping;
 
 /// <summary>
 /// Accessor class to Hololens spatial mapping data via HoloToolKit/SpatialMapping/SpatialMappingObserver.
@@ -20,8 +21,8 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     // Inspector Vars
     [Tooltip("Factor to multiply EFPDriver SensorFOV by for determining if a mesh is in view.")]
     public float FOVFactor = 2f;
-    [Tooltip("Render bounding boxes around individual meshes?")]
-    public bool VisualizeBounds = true;
+    [Tooltip("Default to rendering bounding boxes around individual meshes?")]
+    public bool DefaultVisualizeBounds = false;
     [Tooltip("Size of markers for intersector points of mesh bounding boxes, if rendered. Meters.")]
     public float MarkerSize = 0.05f;
     [Tooltip("Width of lines of mesh bounding boxes, if rendered. Meters.")]
@@ -73,142 +74,116 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     public float Density { get; private set; }
 
     // other variables
-    private HoloToolkit.Unity.SpatialMapping.SpatialMappingObserver observer;
-    private Intersector MeshInter = new Intersector();
+    private SpatialMappingObserver observer;
+    private Intersector MeshInter;
     public Visualizer BoundsVis;
     private List<Color> BoundColors = new List<Color>();
+    public Intersector.ViewVector FOV { get; private set; }
 
     // indicator flags
     private bool BoundsVisualized;
 
-    /// <summary>
-    /// Constructor. ONLY to be used within Singleton, elsewhere ALWAYS use Instance.
-    /// Must follow Singleton's enforced new constraint.
-    /// </summary>
-    public MeshManager()
+    void Start()
     {
+        observer = GetComponent<SpatialMappingObserver>();
+        Density = observer.TrianglesPerCubicMeter;
+        MeshInter = new Intersector();
+        BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
+        BoundsVisualized = DefaultVisualizeBounds;
+
         TotalMeshCount = 0;
         MeshesInView = 0;
         TrianglesInView = 0;
         VerticesInView = 0;
+    }
 
-        BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
-        BoundsVisualized = VisualizeBounds;
+    // control over mesh bounds visualization
+    public bool VB
+    {
+        get { return BoundsVisualized; }
+        set
+        {
+            if (value != BoundsVisualized)
+            {
+                if (value)
+                    BoundsVisualized = true; // create bounds on next Update cycle
+                else
+                {
+                    BoundsVis.Clear();
+                    BoundsVisualized = false;
+                }
+            }
+        }
     }
 
     /// <summary>
-    /// Updates parameter list of cached vertices, updates class metadata.
+    /// ID's all of SpatialMappingObserver's store meshes as visible or not, updates class metadata.
     /// Renders mesh bounds if VisualizeBounds.
     /// </summary>
-    public List<Vector3> UpdateVertices(Intersector.Frustum SensorView)
+    public List<bool> UpdateVertices(Intersector.Frustum SensorView)
     {
-        // can only call GetComponent in Start() or Awake() but this is not a MonoBehaiour Script
-        // SpatialMappingObserver is not a Singleton, cannot use Instance.
-        observer = GetComponent<HoloToolkit.Unity.SpatialMapping.SpatialMappingObserver>();
-        Density = observer.TrianglesPerCubicMeter;
-        // Adjust Sensor.FOV by specified factor
-        SensorView.FOV.Theta = FOVFactor * SensorView.FOV.Theta;
-        SensorView.FOV.Phi = FOVFactor * SensorView.FOV.Phi;
+        // Adjust Sensor.FOV by specified factor...
+        FOV = new Intersector.ViewVector(FOVFactor * SensorView.FOV.Phi, FOVFactor * SensorView.FOV.Phi);
+        SensorView.FOV = FOV;
 
         // create fresh lists, metadata
-        List<Vector3> vertices = new List<Vector3>();
-        List<MeshFilter> MeshFilters = observer.GetMeshFilters();
-        List<MeshRenderer> MeshRenderers = observer.GetMeshRenderers();
-        List<Intersector.PointValue<byte>> BoundPoints = new List<Intersector.PointValue<byte>>();
-        List<Visualizer.Content> toRender = new List<Visualizer.Content>(); 
+        List<bool> visiblilty = new List<bool>();
+        List<Visualizer.Content> toRender = new List<Visualizer.Content>();
         TotalMeshCount = 0;
         TotalTriangleCount = 0;
         TotalVertexCount = 0;
-        VerticesInView = 0;
-        TrianglesInView = 0;
         MeshesInView = 0;
-
-        if (MeshFilters.Count != MeshRenderers.Count)
-            Debug.Log(string.Format("SpatialMappingObserver's returned MeshFilters count does not match " +
-                "returned MeshRenderers count: {0} vs. {1}",
-                MeshFilters.Count, MeshRenderers.Count));
+        TrianglesInView = 0;
+        VerticesInView = 0;
 
         // add colors if necessary
-        while (VisualizeBounds && BoundColors.Count < MeshFilters.Count)
+        while (VB && BoundColors.Count < observer.SurfaceObjects.Count)
             BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
 
-        for (int i = 0; i < MeshFilters.Count; i++)
+        // check meshes for visiblity
+        for (int i = 0; i < observer.ExtraData.Count; i++)
         {
-            MeshRenderer tmpRenderer = MeshRenderers[i];
-            Transform tmpTransform = tmpRenderer.transform;
+            SurfacePoints extras = observer.ExtraData[i];
+            bool isVisible = MeshInter.AnyInView(extras.IntersectPts, SensorView);
 
-            List<Vector3> ThisBoundPoints = MBounds(tmpRenderer.bounds);
-            foreach (Vector3 point in ThisBoundPoints)
-                BoundPoints.Add(new Intersector.PointValue<byte>(point, default(byte)));
-
-            // check if mesh is visible
-            if (MeshInter.AnyInView(ThisBoundPoints, SensorView))
+            visiblilty.Add(isVisible);
+            
+            if (isVisible)
             {
-                Mesh tmpMesh = MeshFilters[i].sharedMesh;
-                List<Vector3> tmpVertices = tmpMesh.vertices.ToList();
-
-                // update metadata visibles
+                // update metadata
                 MeshesInView++;
-                TrianglesInView += tmpMesh.triangles.ToList().Count();
-                VerticesInView += tmpMesh.vertices.ToList().Count();
+                TrianglesInView += extras.TriangleCount;
+                VerticesInView += extras.Wvertices.Count;
 
-                for (int j = 0; j < tmpVertices.Count; j++)
+                // setup bounding box visualization
+                if (VB)
                 {
-                    vertices.Add(tmpTransform.TransformPoint(tmpVertices[j]));
-                }
-
-                if (VisualizeBounds)
-                {
-                    // setup bounding box visualization
-                    toRender.AddRange(Visualizer.CreateMarkers(ThisBoundPoints,
-                        MarkerSize, BoundColors[i]));
-                    toRender.AddRange(Visualizer.CreateBoundingLines(tmpRenderer.bounds,
-                        LineSize, BoundColors[i]));
+                    toRender.AddRange(Visualizer.CreateMarkers(extras.IntersectPts, MarkerSize, BoundColors[i]));
+                    toRender.AddRange(Visualizer.CreateBoundingLines(extras.BoundsBox, LineSize, BoundColors[i]));
                 }
             }
-
             // update metadata totals
             TotalMeshCount++;
-            TotalTriangleCount += MeshFilters[i].sharedMesh.triangles.ToList().Count();
-            TotalVertexCount += MeshFilters[i].sharedMesh.vertices.ToList().Count();
+            TotalTriangleCount += extras.TriangleCount;
+            TotalVertexCount += extras.Wvertices.Count;
         }
 
-        /*
-        // test code
-        BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
-        Bounds dummyBounds1 = new Bounds(new Vector3(1, 1, 1), new Vector3(1, 1, 1));
-        toRender.AddRange(Visualizer.CreateMarkers(MBounds(dummyBounds1), MarkerSize, BoundColors[0]));
-        toRender.AddRange(Visualizer.CreateBoundingLines(dummyBounds1, LineSize, BoundColors[0]));
-
-        BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
-        Bounds dummyBounds2 = new Bounds(new Vector3(-1, 1, 1), new Vector3(1, 1, 1));
-        toRender.AddRange(Visualizer.CreateMarkers(MBounds(dummyBounds2), MarkerSize, BoundColors[1]));
-        toRender.AddRange(Visualizer.CreateBoundingLines(dummyBounds2, LineSize, BoundColors[1]));
-        */
-
-        if (VisualizeBounds)
-        {
+        if (VB)
             BoundsVis.Visualize(toRender);
-            BoundsVisualized = true;
-        } else if (BoundsVisualized)
-        {
-            BoundsVis.Clear();
-            BoundsVisualized = false;
-        }
 
-        return vertices;
+        return visiblilty;
     }
-
+    
     /// <summary>
     /// Assembles bounding points for mesh defined by bounds.
     /// </summary>
-    private static List<Vector3> MBounds(Bounds bounds)
+    public static List<Vector3> IntersectionPoints(Bounds bounds)
     {
-        List<Vector3> mbs = new List<Vector3>();
-        mbs.AddRange(Corners(bounds));
-        mbs.AddRange(FacePoints(bounds));
-        mbs.Add(bounds.center);
-        return mbs;
+        List<Vector3> pts = new List<Vector3>();
+        pts.AddRange(Corners(bounds));
+        pts.AddRange(FacePoints(bounds));
+        pts.Add(bounds.center);
+        return pts;
     }
 
     /// <summary>
