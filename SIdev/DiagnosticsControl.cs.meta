@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: f2008613ed519d946b14452b75c67f65
+timeCreated: 1531144161
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - DiagTextPrefab: {fileID: 1595217150240354, guid: 8f89019c2485dfa49b802d859016b150,
+      type: 2}
+  - DiagBackgroundPrefab: {fileID: 1331510990275534, guid: a8ce3a0608db425448f412823782b1f3,
+      type: 2}
+  - EFPContainer: {fileID: 1347616188365108, guid: 58ed08d3813524148aefeb5b91d42da1,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

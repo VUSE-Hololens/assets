@@ -1,0 +1,32 @@
+fileFormatVersion: 2
+guid: 050fd69e6a4cc5847a27b09b2b9fd2a6
+timeCreated: 1531144160
+licenseType: Free
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - DiagButtonContainer: {fileID: 1743118269226698, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - VertButtonContainer: {fileID: 1566931394083794, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - BoundsButtonContainer: {fileID: 1050710187587922, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - MaterialButtonContainer: {fileID: 1736468259570410, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - OcclusionSlider: {fileID: 1484690879397158, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - MeshDensitySlider: {fileID: 1864044337087106, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - VoxGridMinSizeSlider: {fileID: 1993865107547088, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - MeshUpdateTimeSlider: {fileID: 1068675958296822, guid: 8863a22c0f8d84d4f874b72595f9fcbe,
+      type: 2}
+  - DiagParent: {fileID: 1660975598216178, guid: b45396602dffea24291ee67dc41a0ecc,
+      type: 2}
+  - EFP: {fileID: 1347616188365108, guid: 58ed08d3813524148aefeb5b91d42da1, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
