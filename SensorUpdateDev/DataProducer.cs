@@ -5,8 +5,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Receiving;
 
 public class DataProducer : MonoBehaviour {
+
+    public GameObject ReceiverGameObject;
 
     // inspector vars
     public int StartingHeight = 10;
@@ -19,9 +22,12 @@ public class DataProducer : MonoBehaviour {
     public int Width { get; private set; }
     public byte[] SensorData { get; private set; }
 
+    private ImageReceiver Receiver; 
+
 	// Use this for initialization
 	void Start () {
         // set to starting values
+        Receiver = ReceiverGameObject.GetComponent<ImageReceiver>();
         Height = StartingHeight;
         Width = StartingWidth;
         SensorData = RandomArray(Height * Width);
@@ -29,8 +35,17 @@ public class DataProducer : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Randomize)
+		if (Randomize && false)
+        {
             SensorData = RandomArray(Height * Width);
+        }
+        if (Receiver.CheckNewImage())
+        {
+            Height = Receiver.Get_ImageHeight();
+            Width = Receiver.Get_ImageWidth();
+            SensorData = Receiver.Get_ImageData1D();
+        }
+
     }
 
     /// <summary>
