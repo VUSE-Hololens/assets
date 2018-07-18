@@ -20,7 +20,7 @@ namespace Receiving
     {
         static readonly string RemoteIP = "10.67.87.102";
         static readonly string RemotePort = "5000";
-        static readonly string ServerPort = "5001";
+        static readonly string LocalPort = "5001";
 
         private const int PACKET_SIZE = 20000;
         private const int NORMAL_PACKET_INDEX_BYTES = 3;
@@ -46,11 +46,9 @@ namespace Receiving
         private int ID_ImageHeight;
         private string ID_Message = "testing";
         private bool ID_NewImage = false;
-
+        private double ID_fps = 0;
         private DateTime time;
-        private int testIterator = 0;
         private int ImgCount = 0;
-        private bool debug = false;
 
         private readonly ConcurrentQueue<Action> ExecuteOnMainThread = new ConcurrentQueue<Action>();
 
@@ -110,7 +108,6 @@ namespace Receiving
                     }
                 }
             }
-            if (debug) Debug.Log("Width: " + ID_ImageWidth + ", Height: " + ID_ImageHeight + ", Length: " + ID_ImageData1D.Length);
             ID_NewImage = true;
         }
 
@@ -131,11 +128,10 @@ namespace Receiving
         async void Start() //async
         {
             // initialized ID_ImageData1D to all Green to prove displayer working correctly
-            Init_TestBand(240, 320, testIterator);
+            Init_TestBand(240, 320, 0);
             ServerSocket = new DatagramSocket();
             await StartServer();
             // await SendBroadcast("Hello World!"); // dont need it 
-            if (debug) Debug.Log("Exit Start");
         }
 
         private async System.Threading.Tasks.Task StartServer()
@@ -143,7 +139,7 @@ namespace Receiving
             ServerSocket.MessageReceived += ServerSocket_MessageReceived;
             try
             {
-                await ServerSocket.BindServiceNameAsync(ServerPort);
+                await ServerSocket.BindServiceNameAsync(LocalPort);
             }
             catch (Exception e)
             {
@@ -236,7 +232,6 @@ namespace Receiving
         {
             try
             {
-                ID_NewImage = false; // unnecesary, but ensures cant be accessed while updating.
                 // Decode the JPEG
                 MemoryStream stream = new MemoryStream(img);
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
@@ -246,8 +241,9 @@ namespace Receiving
                 ID_ImageHeight = (int)decoder.PixelHeight;
 
                 byte[] tmp = pixelData.DetachPixelData();
-                ID_ImageData1D = new byte[ID_ImageWidth * ID_ImageHeight];
 
+                ID_NewImage = false; // unnecesary, but ensures cant be accessed while updating.
+                ID_ImageData1D = new byte[ID_ImageWidth * ID_ImageHeight];
                 //synthesize to one band
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
@@ -256,6 +252,8 @@ namespace Receiving
                 tmp = null;
 
                 ID_NewImage = true;
+                ID_fps = 1.0/(DateTime.Now.Subtract(time).TotalSeconds);
+                time = DateTime.Now;
             }
             catch (Exception ex)
             {
