@@ -167,12 +167,17 @@ namespace HoloToolkit.Unity.SpatialMapping
         protected SurfaceObject? UpdateOrAddSurfaceObject(SurfaceObject toUpdateOrAdd, SurfacePoints extras,
             bool destroyGameObjectIfReplaced = true, bool destroyMeshesIfReplaced = true)
         {
+            /*
             // debug
             Debug.Log(string.Format("Attempting to Add/Update surface to SMS. Wvertices Length: {0}, TriCount: {1}. " +
                 "Currently, SurfaceObject Count: {2}, ExtraData Count: {3}",
                 extras.Wvertices.Count, extras.TriangleCount, SurfaceObjects.Count, ExtraData.Count));
+            */
 
             SurfaceObject? replaced = null;
+
+            // verify correct material
+            toUpdateOrAdd.Renderer.sharedMaterial = RenderMaterial;
 
             for (int iSurface = 0; iSurface < surfaceObjectsWriteable.Count; iSurface++)
             {

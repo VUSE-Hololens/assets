@@ -88,32 +88,11 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
         observer = GetComponent<SpatialMappingObserver>();
         Density = observer.Density;
         MeshInter = new Intersector();
-        BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
-        BoundsVisualized = DefaultVisualizeBounds;
 
         TotalMeshCount = 0;
         MeshesInView = 0;
         TrianglesInView = 0;
         VerticesInView = 0;
-    }
-
-    // control over mesh bounds visualization
-    public bool VB
-    {
-        get { return BoundsVisualized; }
-        set
-        {
-            if (value != BoundsVisualized)
-            {
-                if (value)
-                    BoundsVisualized = true; // create bounds on next Update cycle
-                else
-                {
-                    BoundsVis.Clear();
-                    BoundsVisualized = false;
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -130,17 +109,12 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
 
         // create fresh lists, metadata
         List<bool> visiblilty = new List<bool>();
-        List<Visualizer.Content> toRender = new List<Visualizer.Content>();
         TotalMeshCount = 0;
         TotalTriangleCount = 0;
         TotalVertexCount = 0;
         MeshesInView = 0;
         TrianglesInView = 0;
         VerticesInView = 0;
-
-        // add colors if necessary
-        while (VB && BoundColors.Count < observer.SurfaceObjects.Count)
-            BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
 
         // check meshes for visiblity
         for (int i = 0; i < observer.ExtraData.Count; i++)
@@ -156,13 +130,6 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
                 MeshesInView++;
                 TrianglesInView += extras.TriangleCount;
                 VerticesInView += extras.Wvertices.Count;
-
-                // setup bounding box visualization
-                if (VB)
-                {
-                    toRender.AddRange(Visualizer.CreateMarkers(extras.IntersectPts, MarkerSize, BoundColors[i]));
-                    toRender.AddRange(Visualizer.CreateBoundingLines(extras.BoundsBox, LineSize, BoundColors[i]));
-                }
             }
             // update metadata totals
             TotalMeshCount++;
@@ -170,12 +137,20 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
             TotalVertexCount += extras.Wvertices.Count;
         }
 
-        if (VB)
-            BoundsVis.Visualize(toRender);
-
         return visiblilty;
     }
     
+    /// <summary>
+    /// Returns bounds of all stored meshes
+    /// </summary>
+    public List<Bounds> AllMeshBounds()
+    {
+        List<Bounds> MeshBounds = new List<Bounds>();
+        for (int i = 0; i < observer.ExtraData.Count; i++)
+            MeshBounds.Add(observer.ExtraData[i].BoundsBox);
+        return MeshBounds;
+    }
+
     /// <summary>
     /// Assembles bounding points for mesh defined by bounds.
     /// </summary>

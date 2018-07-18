@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DefaultMaterial: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  SensorFOV: {x: 30, y: 17}
+  SensorFOV: {x: 20, y: 12}
   SensorPixelCount: {x: 4096, y: 3072}
   OcclusionObjSize: 0.1
   OcclusionObjDistance: 5
@@ -64,10 +64,18 @@ MonoBehaviour:
   DefaultVoxelSize: 1
   DefaultRenderVerts: 1
   VertexMarkerSize: 0.05
-  MinColor: {r: 0, g: 1, b: 0, a: 0.39215687}
-  MaxColor: {r: 1, g: 0, b: 0, a: 0.39215687}
+  MinColor: {r: 0, g: 1, b: 0, a: 0.19607843}
+  MaxColor: {r: 1, g: 0, b: 0, a: 0.19607843}
+  NoDataColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.39215687}
   Material1: {fileID: 2100000, guid: 8b945de4be1e3af4d814512fc85c1d20, type: 2}
   Material2: {fileID: 2100000, guid: d698790d3facd3d4289a13fa1243030a, type: 2}
+  Closest: 0.5
+  Furthest: 10
+  MinColorVal: 0
+  MaxColorVal: 255
+  VoxColor1: {r: 0, g: 0, b: 0, a: 0}
+  VoxColor2: {r: 1, g: 1, b: 1, a: 1}
+  VoxLineWidth: 0.02
 --- !u!114 &114360786449326888
 MonoBehaviour:
   m_ObjectHideFlags: 1

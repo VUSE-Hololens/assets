@@ -154,8 +154,12 @@ public class Intersector
 
         public Occlusion(float myObjSize, float myObjDistance, ViewVector myFOV)
         {
+            // control
+            // Converts real size myObjSize to apparent size for up to this angle from plane perpindicular to line of sight
+            float ObjAngleOffset = 30; // deg
+            
             // set data
-            objSize = myObjSize;
+            objSize = myObjSize * (float)Math.Cos(DegToRad(ObjAngleOffset));
             objDistance = myObjDistance;
             FOV = myFOV;
 

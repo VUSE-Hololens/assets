@@ -65,10 +65,18 @@ public class VoxelGridManager<T>
         lastUpdate = DateTime.Now;
     }
 
+    // updating resolution resets all data.
     public float Resolution
     {
         get { return voxGrid.MinSize; }
-        set { voxGrid.MinSize = value; }
+        set
+        {
+            if (value != voxGrid.MinSize)
+            {
+                minSize = value;
+                Reset();
+            }
+        }
     }
 
     /// <summary>
@@ -93,5 +101,32 @@ public class VoxelGridManager<T>
     public T Get(Vector3 point)
     {
         return voxGrid.get(point);
+    }
+
+    /// <summary>
+    /// Return list of all voxels in voxGrid.
+    /// </summary>
+    public List<Voxel<T>> Voxels()
+    {
+        return voxGrid.Voxels();
+    }
+
+    public void Reset()
+    {
+        voxGrid = new Octree<T>(startingPoint, minSize, defaultSize);
+        lastUpdate = DateTime.Now;
+    }
+
+    public bool Contains(Vector3 pt)
+    {
+        return voxGrid.root.contains(pt);
+    }
+
+    /// <summary>
+    /// returns if voxel containing point is non-null
+    /// </summary>
+    public bool NonNullCell(Vector3 pointToGet)
+    {
+        return voxGrid.NonNullCell(pointToGet);
     }
 }
