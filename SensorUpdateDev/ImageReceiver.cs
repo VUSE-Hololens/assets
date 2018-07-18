@@ -18,13 +18,11 @@ namespace Receiving
 {
     public class ImageReceiver : MonoBehaviour
     {
-        private int ImgCount = 0;
-
-        static readonly string RemoteIP = "10.67.144.129";
+        static readonly string RemoteIP = "10.67.87.102";
         static readonly string RemotePort = "5000";
         static readonly string ServerPort = "5001";
 
-        private const int PACKET_SIZE = 1000;
+        private const int PACKET_SIZE = 20000;
         private const int NORMAL_PACKET_INDEX_BYTES = 3;
         private const int START_PACKET_SIZE = 3;
 
@@ -43,7 +41,7 @@ namespace Receiving
         private byte[] ImageBuffer = null;
 
         private byte[] ID_ImageData1D;
-        private int ID_ImageType;
+        //private int ID_ImageType;
         private int ID_ImageWidth;
         private int ID_ImageHeight;
         private string ID_Message = "testing";
@@ -51,9 +49,10 @@ namespace Receiving
 
         private DateTime time;
         private int testIterator = 0;
+        private int ImgCount = 0;
+        private bool debug = false;
 
-        // private readonly ConcurrentQueue<Action> ExecuteOnMainThread = new ConcurrentQueue<Action>();
-        // private readonly Queue<Action> ExecuteOnMainThread = new Queue<Action>();
+        private readonly ConcurrentQueue<Action> ExecuteOnMainThread = new ConcurrentQueue<Action>();
 
 #if !UNITY_EDITOR
         DatagramSocket ServerSocket;
@@ -75,7 +74,7 @@ namespace Receiving
 
         public bool CheckNewImage() { return ID_NewImage; }
 
-        public int Get_ImageType() { return ID_ImageType; }
+        // public int Get_ImageType() { return ID_ImageType; }
         
         public int Get_ImageWidth() { return ID_ImageWidth; }
 
@@ -84,24 +83,7 @@ namespace Receiving
         public byte[] Get_ImageData1D()
         {
             ID_NewImage = false;
-            Debug.Log("Polled to get Image Data - length: " + ID_ImageData1D.Length);
             return ID_ImageData1D;
-        }
-
-        private void Init_TestRGB(int width, int height)
-        {
-            ID_ImageWidth = width;
-            ID_ImageHeight = height;
-            ID_ImageData1D = new byte[ID_ImageWidth * ID_ImageHeight * 4];
-            for (int i = 0; i < ID_ImageData1D.Length; i += 4)
-            {
-                ID_ImageData1D[i + 0] = 0x00; // r
-                ID_ImageData1D[i + 1] = 0xff; // g
-                ID_ImageData1D[i + 2] = 0x00; // b
-                ID_ImageData1D[i + 3] = 0xff; // a
-            }
-            Debug.Log("Width: " + ID_ImageWidth + ", Height: " + ID_ImageHeight + ", Length: " + ID_ImageData1D.Length);
-            ID_NewImage = true;
         }
 
         private void Init_TestBand(int width, int height, int num = 2)
@@ -128,55 +110,40 @@ namespace Receiving
                     }
                 }
             }
-            Debug.Log("Width: " + ID_ImageWidth + ", Height: " + ID_ImageHeight + ", Length: " + ID_ImageData1D.Length);
+            if (debug) Debug.Log("Width: " + ID_ImageWidth + ", Height: " + ID_ImageHeight + ", Length: " + ID_ImageData1D.Length);
             ID_NewImage = true;
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (DateTime.Now.Subtract(time).Seconds > 1)
-            {
-                Init_TestBand(400, 400, (++testIterator) % 3);
-                time = DateTime.Now;
-            }
-
-            /* int queueCount = 0;
             // execute everything queued
             while (ExecuteOnMainThread.Count > 0)
             {
                 ExecuteOnMainThread.Dequeue().Invoke();
-                Debug.Log("Dequeued (" + ++queueCount + " of " + (ExecuteOnMainThread.Count + queueCount) + ")");
             }
             if (ExecuteOnMainThread.Count == 0)
             {
-                Debug.Log("Empty Queue!");
                 ReceivingStatus = AWAITING_IMAGE;
-            } */
+            }
         }
-
-        void Start() //async
+#if !UNITY_EDITOR
+        async void Start() //async
         {
             // initialized ID_ImageData1D to all Green to prove displayer working correctly
-            Init_TestBand(400, 400, testIterator);
-            time = DateTime.Now;
-            // ServerSocket = new DatagramSocket();
-            // await StartServer();
-            // await System.Threading.Tasks.Task.Delay(3000);
-            // await SendBroadcast("Hello World!");
-            Debug.Log("Exit Start");
+            Init_TestBand(240, 320, testIterator);
+            ServerSocket = new DatagramSocket();
+            await StartServer();
+            // await SendBroadcast("Hello World!"); // dont need it 
+            if (debug) Debug.Log("Exit Start");
         }
 
-#if !UNITY_EDITOR
         private async System.Threading.Tasks.Task StartServer()
         {
-            Debug.Log("Waiting for Connection...");
             ServerSocket.MessageReceived += ServerSocket_MessageReceived;
-
             try
             {
                 await ServerSocket.BindServiceNameAsync(ServerPort);
-                Debug.Log("Connected to " + RemoteIP + ":" + RemotePort);
             }
             catch (Exception e)
             {
@@ -190,12 +157,10 @@ namespace Receiving
         {
             try  // send out a message, otherwise receiving does not work ?!
             {
-                Debug.Log("Sending broadcast...");
                 var outputStream = await ServerSocket.GetOutputStreamAsync(new HostName(RemoteIP), RemotePort);
                 DataWriter writer = new DataWriter(outputStream);
                 writer.WriteString(message);
                 await writer.StoreAsync();
-                Debug.Log("Sent Broadcast: "+ message);
             }
             catch (Exception ex)
             {
@@ -213,33 +178,17 @@ namespace Receiving
             await System.Threading.Tasks.Task.Run(() =>
             {
                 Stream streamIn = args.GetDataStream().AsStreamForRead();
-                //MemoryStream ms = ToMemoryStream(streamIn);
-                byte[] data = ToMemoryStream(streamIn).ToArray(); // ms.ToArray();
-                Debug.Log("Read in byte array of length " + data.Length);
-
-                ProcessPacket(data);
+                byte[] data = ToMemoryStream(streamIn).ToArray(); 
 
                 // enqueue all, continually stack // used for managing events, creates a group of actions
-                /* if (ReceivingStatus == AWAITING_IMAGE) // unnecessary but clean up later if things work?
+                if (ReceivingStatus == AWAITING_IMAGE) // unnecessary but clean up later if things work?
                 {
-                    Debug.Log("Queue Count: " + ExecuteOnMainThread.Count);
                     ExecuteOnMainThread.Enqueue(() =>
                     {
                         ProcessPacket(data);
                     });
-                }*/ 
-
-                /*
-                System.Threading.Tasks.Task taskAsync = new System.Threading.Tasks.Task(async () =>
-                {
-                   await ProcessPacket(data);
-                });
-                taskAsync.Start(); */
+                } 
             });
-            // Debug.Log("Data Array: " + (data != null) + " - length: " + data.Length);
-            //await ProcessPacket(data);
-            //Debug.Log("Processed Packet");
-
         }
 
         public void Dispose()
@@ -251,6 +200,7 @@ namespace Receiving
             }
         }
 
+        // optional to process packet asynchronously
         private async System.Threading.Tasks.Task ProcessPacketAsync(byte[] data)
         {
             await System.Threading.Tasks.Task.Run(() =>
@@ -262,109 +212,61 @@ namespace Receiving
         //process the packet of data we get
         private void ProcessPacket(byte[] data)
         {
-           if (data.Length >= 3) // read in string packet  with '___' prefix- this is for testing
+            switch (data.Length)
             {
-                if ((char)data[0] == '_' && (char)data[1] == '_' && (char)data[2] == '_')
-                {
-                    string message = Encoding.UTF8.GetString(data);
-                    Debug.Log("String: " + message);
-                    ID_Message = message;
-                    Debug.Log("Set ID_Message variable");
-                }
-            }
-            switch (ReceivingStatus)
-            {
-                case AWAITING_IMAGE:
-                    if (data.Length == START_PACKET_SIZE)
-                    {
-                        StartReceivingImage(data);
-                    }
+                case (0):
+                    byte[] processingBuffer = ImageBuffer;
+                    ImageBuffer = null;
+                    ProcessImageArr(processingBuffer);
+                    break;
+                // It's only possible for start packets to be of size 3 (others must be >= 4)
+                case (START_PACKET_SIZE):
+                    // do nothing because all is coming in one packet
                     break;
                 default:
-                    if (data.Length == 0)
-                    {
-                        // Handle image here 
-                        ServerSocket.MessageReceived -= ServerSocket_MessageReceived;
-                        ReceivingStatus = AWAITING_IMAGE;
-                        byte[] processingBuffer = ImageBuffer;
-                        ImageBuffer = null;
-                        ProcessImageArr(processingBuffer);
-                        ImgCount++;
-                        // showImage = false;
-                        Debug.Log("Image Count: " + ImgCount);
-                    }
-                    // It's only possible for start packets to be of size 3 (others must be >= 4)
-                    else if (data.Length == START_PACKET_SIZE)
-                    {
-                        StartReceivingImage(data);
-                    }
-                    else
-                    {
-                        int ind = data[0];
-                        ind |= ((data[1] & 0xff) << 8);
-                        ind |= ((data[2] & 0xff) << 16);
-                        for (int i = 0; i < data.Length - NORMAL_PACKET_INDEX_BYTES; ++i)
-                        {
-                            ImageBuffer[(ind * PACKET_SIZE) + i] = data[i + NORMAL_PACKET_INDEX_BYTES];
-                        }
-                    }
+                    // add jpeg compressed byte[] received to image buffer
+                    ImageBuffer = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
+                    Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, ImageBuffer, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
                     break;
-            }
-        }
-        private void StartReceivingImage(byte[] data)
-        {
-            char nextByte = (char)data[0];
-            if (nextByte == START_RGB)
-            {
-                UInt16 num_packets = data[1];
-                num_packets |= (UInt16)((data[2] & 0xff) << 8);
-                ReceivingStatus = RECEIVING_RGB;
-                ImageBuffer = new byte[PACKET_SIZE * num_packets];
-            }
-            else if (nextByte == START_ONE_BAND)
-            {
-                UInt16 num_packets = data[1];
-                num_packets |= (UInt16)((data[2] & 0xff) << 8);
-                ReceivingStatus = START_ONE_BAND;
-                ImageBuffer = new byte[PACKET_SIZE * num_packets];
             }
         }
 
         // display image when last packet arrives
-        private async void ProcessImageArr(byte[] img) //, int imgType)
+        private async void ProcessImageArr(byte[] img) // int imgType)
         {
             try
             {
+                ID_NewImage = false; // unnecesary, but ensures cant be accessed while updating.
                 // Decode the JPEG
                 MemoryStream stream = new MemoryStream(img);
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
-                //SoftwareBitmap sftwareBmp = await decoder.GetSoftwareBitmapAsync();
-                //SoftwareBitmap sftwareBmp = SoftwareBitmap.Convert(sftwareBmp, BitmapPixelFormat.Rgba8, BitmapAlphaMode.Premultiplied);
-
+               
                 ID_ImageWidth = (int)decoder.PixelWidth;
                 ID_ImageHeight = (int)decoder.PixelHeight;
-                Debug.Log(string.Format("ImgSize: ({0},{1})", ID_ImageHeight, ID_ImageWidth));
-                ID_ImageData1D = new byte[4 * ID_ImageWidth * ID_ImageHeight];
-                Array.Copy(pixelData.DetachPixelData(), ID_ImageData1D, ID_ImageData1D.Length);
-                // ID_ImageData1D = pixelData.DetachPixelData();
 
-                Debug.Log("ID_ImageData exists: " + (ID_ImageData1D != null));
-                //Debug.Log("Copied Array: Length = " + ID_ImageData1D.Length);
+                byte[] tmp = pixelData.DetachPixelData();
+                ID_ImageData1D = new byte[ID_ImageWidth * ID_ImageHeight];
 
-                //RGB1D_ToImageData2D(ref ID_ImageData1D, width, height);
-                //RGB1D_ToImageData3D(ref ID_ImageData1D, width, height);
-                //ID_ImageType = imgType;
+                //synthesize to one band
+                for (int i = 0; i < tmp.Length; i += 4)
+                {
+                    ID_ImageData1D[i / 4] = RGBAToByte(tmp[i+0], tmp[i+1], tmp[i+2], tmp[i+3]);
+                }
+                tmp = null;
+
                 ID_NewImage = true;
-
-                ServerSocket.MessageReceived += ServerSocket_MessageReceived;
             }
             catch (Exception ex)
             {
-                Debug.Log(ex.Message);
+                if (debug) Debug.Log(ex.Message);
             }
         }
 #endif
+        private byte RGBAToByte(byte r, byte g, byte b, byte a)
+        {
+            return (byte)((r + g + b) / 3);
+        }
         private static MemoryStream ToMemoryStream(Stream input)
         {
             try
@@ -380,14 +282,5 @@ namespace Receiving
             }
             finally { }
         }
-        /*
-        #if !UNITY_EDITOR
-                private static IRandomAccessStream ToIRandomAccessStream(byte[] arr)
-                {
-                    MemoryStream stream = new MemoryStream(arr);
-                    return stream.AsRandomAccessStream();
-                }
-        #endif
-                */
     }
 }
