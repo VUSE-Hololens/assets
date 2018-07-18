@@ -297,13 +297,13 @@ namespace Receiving
             }
             catch (Exception ex)
             {
-                if (debug) Debug.Log(ex.Message);
+                ebug.Log(ex.Message);
             }
         }
 #endif
         private byte RGBAToByte(byte r, byte g, byte b, byte a)
         {
-            return (byte)((r + g + b) / 3);
+            return (byte)((0 + r + g + b) / 3);
         }
         private static MemoryStream ToMemoryStream(Stream input)
         {
