@@ -70,6 +70,8 @@ namespace Receiving
         //get methods
         public string Get_Message() { return ID_Message; }
 
+        public double Get_fps() { return ID_fps; }
+
         public bool CheckNewImage() { return ID_NewImage; }
 
         // public int Get_ImageType() { return ID_ImageType; }
