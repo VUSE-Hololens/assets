@@ -213,9 +213,7 @@ namespace Receiving
             switch (data.Length)
             {
                 case (0):
-                    byte[] processingBuffer = ImageBuffer;
-                    ImageBuffer = null;
-                    ProcessImageArr(processingBuffer);
+                    //byte[] processingBuffer = ImageBuffer;
                     break;
                 // It's only possible for start packets to be of size 3 (others must be >= 4)
                 case (START_PACKET_SIZE):
@@ -225,6 +223,7 @@ namespace Receiving
                     // add jpeg compressed byte[] received to image buffer
                     ImageBuffer = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
                     Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, ImageBuffer, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
+                    ProcessImageArr(ImageBuffer);
                     break;
             }
         }
@@ -254,6 +253,7 @@ namespace Receiving
                 tmp = null;
 
                 ID_NewImage = true;
+
                 ID_fps = 1.0/(DateTime.Now.Subtract(time).TotalSeconds);
                 time = DateTime.Now;
             }
