@@ -25,7 +25,7 @@ public class MenuControl : MonoBehaviour
     [Tooltip("Button object for wireframe toggle")]
     public GameObject MaterialButtonContainer;
     [Tooltip("Button object for live data only toggle")]
-    public GameObject LiveOnlyButtonContainer;
+    public GameObject FilterButtonContainer;
     // sliders
     public GameObject OcclusionSlider;
     public GameObject MeshDensitySlider;
@@ -33,6 +33,7 @@ public class MenuControl : MonoBehaviour
     public GameObject MeshUpdateTimeSlider;
     public GameObject MinValSlider;
     public GameObject MaxValSlider;
+    public GameObject ShowFracSlider;
     // parent objs
     [Tooltip("Diagnostics parent GameObject")]
     public GameObject DiagParent;
@@ -44,7 +45,7 @@ public class MenuControl : MonoBehaviour
     private HoloToolkit.Unity.Buttons.CompoundButton VertButton;
     private HoloToolkit.Unity.Buttons.CompoundButton BoundsButton;
     private HoloToolkit.Unity.Buttons.CompoundButton MaterialButton;
-    private HoloToolkit.Unity.Buttons.CompoundButton LiveOnlyButton;
+    private HoloToolkit.Unity.Buttons.CompoundButton FilterButton;
 
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl OcSliderGC;
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl MeshDensitySliderGC;
@@ -52,8 +53,10 @@ public class MenuControl : MonoBehaviour
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl MeshUpdateTimeSliderGC;
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl MinValSliderGC;
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl MaxValSliderGC;
+    private HoloToolkit.Examples.InteractiveElements.SliderGestureControl ShowFracSliderGC;
 
     private BoundsState BState = BoundsState.off;
+    private DataFilter FilterState = DataFilter.mesh;
 
     private void Start()
     {
@@ -62,14 +65,14 @@ public class MenuControl : MonoBehaviour
         VertButton = VertButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
         BoundsButton = BoundsButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
         MaterialButton = MaterialButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
-        LiveOnlyButton = LiveOnlyButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
+        FilterButton = FilterButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
 
         // declare event handlers
         DiagButton.OnButtonPressed += new System.Action<GameObject>(ToggleDiag);
         VertButton.OnButtonPressed += new System.Action<GameObject>(ToggleVerts);
         BoundsButton.OnButtonPressed += new System.Action<GameObject>(ToggleBounds);
         MaterialButton.OnButtonPressed += new System.Action<GameObject>(ToggleMaterial);
-        LiveOnlyButton.OnButtonPressed += new System.Action<GameObject>(ToggleLiveOnly);
+        FilterButton.OnButtonPressed += new System.Action<GameObject>(ToggleFilter);
 
         // add sliders as listeners
         OcSliderGC = OcclusionSlider.GetComponent<HoloToolkit.Examples.InteractiveElements.SliderGestureControl>();
@@ -84,19 +87,22 @@ public class MenuControl : MonoBehaviour
         MinValSliderGC.OnUpdateEvent.AddListener(UpdateMinVal);
         MaxValSliderGC = MaxValSlider.GetComponent<HoloToolkit.Examples.InteractiveElements.SliderGestureControl>();
         MaxValSliderGC.OnUpdateEvent.AddListener(UpdateMaxVal);
+        ShowFracSliderGC = ShowFracSlider.GetComponent<HoloToolkit.Examples.InteractiveElements.SliderGestureControl>();
+        ShowFracSliderGC.OnUpdateEvent.AddListener(UpdateShowFrac);
 
         // set original button labels
         UpdateDiagLabel();
         UpdateVertLabel();
         UpdateBoundsLabel();
         UpdateMaterialLabel();
-        UpdateLiveOnlyLabel();
+        UpdateFilterLabel();
 
         // finish syncing state
         UpdateMeshDensity(MeshDensitySliderGC.SliderValue); // also updates oc, voxel res
         UpdateMeshUpdateTime(MeshUpdateTimeSliderGC.SliderValue);
         UpdateMinVal(MinValSliderGC.SliderValue);
         UpdateMaxVal(MaxValSliderGC.SliderValue);
+        UpdateShowFrac(ShowFracSliderGC.SliderValue);
     }
 
     /// <summary>
@@ -156,11 +162,11 @@ public class MenuControl : MonoBehaviour
         if (BState == BoundsState.off)
         {
             BState = BoundsState.mesh;
-            EFP.GetComponent<EFPDriver>().MeshMan.VB = true;
+            EFP.GetComponent<EFPDriver>().MeshBoundsVis = true;
         } else if (BState == BoundsState.mesh)
         {
             BState = BoundsState.voxels;
-            EFP.GetComponent<EFPDriver>().MeshMan.VB = false;
+            EFP.GetComponent<EFPDriver>().MeshBoundsVis = false;
             EFP.GetComponent<EFPDriver>().VoxVis = true;
         } else
         {
@@ -212,25 +218,35 @@ public class MenuControl : MonoBehaviour
             MaterialButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Material2;
     }
 
-    private void ToggleLiveOnly(GameObject button)
+    private void ToggleFilter(GameObject button)
     {
-        EFP.GetComponent<EFPDriver>().LiveDataOnly = !EFP.GetComponent<EFPDriver>().LiveDataOnly;
+        if (FilterState == DataFilter.mesh)
+            FilterState = DataFilter.live;
+        else if (FilterState == DataFilter.live)
+            FilterState = DataFilter.all;
+        else
+            FilterState = DataFilter.mesh;
 
-        UpdateLiveOnlyLabel();
+        EFP.GetComponent<EFPDriver>().VoxGridFilter = FilterState;
+
+        UpdateFilterLabel();
     }
 
     /// <summary>
     /// Updates wireframe toggle button label to current state.
     /// </summary>
-    private void UpdateLiveOnlyLabel()
+    private void UpdateFilterLabel()
     {
-        string On = "Live Only Off";
-        string Off = "Live Only On";
+        string Mesh = "Show Live Data";
+        string Live = "Show All Data";
+        string All = "Show Mesh Data";
 
-        if (EFP.GetComponent<EFPDriver>().LiveDataOnly)
-            LiveOnlyButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = On;
+        if (FilterState == DataFilter.mesh)
+            FilterButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Mesh;
+        else if (FilterState == DataFilter.live)
+            FilterButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Live;
         else
-            LiveOnlyButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Off;
+            FilterButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = All;
     }
 
     /// <summary>
@@ -283,6 +299,14 @@ public class MenuControl : MonoBehaviour
     private void UpdateMaxVal(float value)
     {
         EFP.GetComponent<EFPDriver>().MaxColorVal = (byte)value;
+    }
+
+    /// <summary>
+    /// Updates EFP's show fraction for rendering mesh and voxel bounding boxes
+    /// </summary>
+    private void UpdateShowFrac(float value)
+    {
+        EFP.GetComponent<EFPDriver>().ShowFrac = value;
     }
 
     /// <summary>

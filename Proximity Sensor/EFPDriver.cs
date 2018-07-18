@@ -15,6 +15,12 @@ using System.Diagnostics;
 using UnityEngine;
 using HoloToolkit.Unity.SpatialMapping;
 
+// DataFilter: controls what sections of VoxelGrid are rendered
+    // mesh: all mesh vertices are rendered with values of their voxel cell.
+    // all: all vertices in voxel grid are rendered.
+    // live: only vertices currently in sensor FOV are rendered with voxel grid data, else'no data'
+public enum DataFilter { mesh, all, live};
+
 [RequireComponent(typeof(MeshManager))]
 public class EFPDriver : MonoBehaviour {
 
@@ -58,10 +64,12 @@ public class EFPDriver : MonoBehaviour {
     public float Furthest = 5; // meters, corresponds to 255 in stored data
     public byte MinColorVal = 0; // stored value rendered as MinColor
     public byte MaxColorVal = 255; // stored value rendered as MaxColor
-    public Color VoxColor1;
+    public float ShowFrac = 0.1f; // fraction of voxels to visualize
+    public Color BoundsColor1;
     [Tooltip("Second edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
-    public Color VoxColor2;
-    public float VoxLineWidth = 0.02f;
+    public Color BoundsColor2;
+    public float BoundsLineWidth = 0.02f;
+    public DataFilter VoxGridFilter = DataFilter.mesh;
 
     // metadata
     public double DriverSpeed { get; private set; } // Update(), seconds
@@ -91,7 +99,7 @@ public class EFPDriver : MonoBehaviour {
     private bool VerticesRendered;
     private bool ColoredMeshShown; // alternative is wireframe mesh
     private bool voxVis = false;
-    private bool liveDataOnly = false;
+    private bool meshBoundsVis = false;
 
     // control over vertice rendering
     public bool RenderVerts
@@ -134,18 +142,29 @@ public class EFPDriver : MonoBehaviour {
         set { VoxGridMan.Resolution = value; }
     }
 
-    // control of voxel bounds rendering
+    // control of bounds rendering
+    private List<Voxel<byte>> Voxels;
+    private List<Bounds> MeshBounds;
+    private List<float> BoundsRandNums;
     public bool VoxVis
     {
         get { return voxVis; }
-        set { voxVis = value; }
+        set
+        {
+            if (value)
+                UpdateVoxels();
+            voxVis = value;
+        }
     }
-
-    // control for liveDataOnly
-    public bool LiveDataOnly
+    public bool MeshBoundsVis
     {
-        get { return liveDataOnly; }
-        set { liveDataOnly = value; }
+        get { return meshBoundsVis; }
+        set
+        {
+            if (value)
+                UpdateMeshBounds();
+            meshBoundsVis = value;
+        }
     }
 
     // Use this for initialization
@@ -203,8 +222,8 @@ public class EFPDriver : MonoBehaviour {
         // update voxel grid
         SubStopWatch.Reset();
         SubStopWatch.Start();
-        // reset if LiveDataOnly
-        if (LiveDataOnly)
+        // reset if filtered to live data only
+        if (VoxGridFilter == DataFilter.live)
             VoxGridMan.Reset();
         VoxGridMan.Set(Updates, UpdateVoxStruct);
         SubStopWatch.Stop();
@@ -217,31 +236,59 @@ public class EFPDriver : MonoBehaviour {
         // render spheres
         if (RenderVerts)
         {
-            content.AddRange(Visualizer.CreateMarkers(Updates, 
-                VertexMarkerSize, MinColorVal, MaxColorVal, MinColor, MaxColor));
-            
+            if (VoxGridFilter == DataFilter.mesh || VoxGridFilter == DataFilter.live)
+                // render all non-occluded mesh vertices
+                content.AddRange(Visualizer.CreateMarkers(Updates,
+                    VertexMarkerSize, MinColorVal, MaxColorVal, MinColor, MaxColor));
+            else
+            {
+                // render all visible voxel vertices
+                List<Voxel<byte>> curVoxels = VoxGridMan.Voxels();
+                for (int i = 0; i < curVoxels.Count; i++)
+                {
+                    List<Intersector.PointValue<byte>> tmp = new List<Intersector.PointValue<byte>>();
+                    tmp.Add(new Intersector.PointValue<byte>(curVoxels[i].point, curVoxels[i].value));
+                    content.AddRange(Visualizer.CreateMarkers(tmp,
+                        VertexMarkerSize, MinColorVal, MaxColorVal, MinColor, MaxColor));
+                }
+            }
         }
         // visualize voxels
         if (VoxVis)
         {
-            List<Voxel<byte>> voxels = VoxGridMan.Voxels();
-            while (BoundColors.Count < voxels.Count)
-                BoundColors.Add(Visualizer.RandomColor(VoxColor1, VoxColor2));
-            for (int i = 0; i < voxels.Count; i++)
+            for (int i = 0; i < Voxels.Count; i++)
             {
-                Bounds voxBound = new Bounds();
-                voxBound.min = voxels[i].min;
-                voxBound.max = voxels[i].max;
-                if (VertexInter.AnyInView(MeshManager.IntersectionPoints(voxBound), SensorField))
-                    content.AddRange(Visualizer.CreateBoundingLines(voxBound, VoxLineWidth, BoundColors[i]));
+                if (BoundsRandNums[i] <= ShowFrac)
+                {
+                    Bounds voxBound = new Bounds();
+                    voxBound.min = Voxels[i].min;
+                    voxBound.max = Voxels[i].max;
+                    if (VertexInter.AnyInView(MeshManager.IntersectionPoints(voxBound), SensorField))
+                        content.AddRange(Visualizer.CreateBoundingLines(voxBound, BoundsLineWidth, BoundColors[i]));
+                }
+            }
+        }
+        // visualize mesh bounds
+        if (MeshBoundsVis)
+        {
+            for (int i = 0; i < MeshBounds.Count; i++)
+            {
+                if (BoundsRandNums[i] <= ShowFrac 
+                    && VertexInter.AnyInView(MeshManager.IntersectionPoints(MeshBounds[i]), SensorField))
+                    content.AddRange(Visualizer.CreateBoundingLines(MeshBounds[i], BoundsLineWidth, BoundColors[i]));
             }
         }
         VertVis.Visualize(content);
         // color mesh
-        if (ColoredMesh)
+        if (ColoredMesh )
         {
-            Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide, 
-                VoxGridMan, MinColor, MaxColor, NoDataColor, MinColorVal, MaxColorVal);
+            // color mesh by voxel grid value if Data Filter is not .all. If so, colored all 'no data'
+            if (VoxGridFilter != DataFilter.all)
+                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
+                    VoxGridMan, MinColor, MaxColor, NoDataColor, MinColorVal, MaxColorVal);
+            else
+                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
+                    VoxGridMan, NoDataColor, NoDataColor, NoDataColor, MinColorVal, MaxColorVal);
         }
         SubStopWatch.Stop();
         VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
@@ -260,5 +307,24 @@ public class EFPDriver : MonoBehaviour {
 
         // update data
             // nothing yet
+    }
+
+    private void UpdateVoxels()
+    {
+        Voxels = VoxGridMan.Voxels();
+        BoundsRandNums = new List<float>();
+        while (BoundsRandNums.Count < Voxels.Count)
+            BoundsRandNums.Add(Random.value);
+        while (BoundColors.Count < Voxels.Count)
+            BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
+    }
+
+    private void UpdateMeshBounds()
+    {
+        MeshBounds = MeshMan.AllMeshBounds();
+        while (BoundsRandNums.Count < MeshBounds.Count)
+            BoundsRandNums.Add(Random.value);
+        while (BoundColors.Count < MeshBounds.Count)
+            BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
     }
 }
