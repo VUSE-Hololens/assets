@@ -47,14 +47,21 @@ public class EFPDriver : MonoBehaviour {
     public Color MinColor;
     [Tooltip("Color of markers for vertices with max value, if rendered.")]
     public Color MaxColor;
+    public Color NoDataColor;
     // mesh materials
     [Tooltip("Colored mesh material")]
     public Material Material1;
     [Tooltip("Wireframe material")]
     public Material Material2;
     // proximity settings
-    public float Closest = 0.5f; // meters
-    public float Furthest = 5; // meters
+    public float Closest = 0.5f; // meters, corresponds to 0 in stored data
+    public float Furthest = 5; // meters, corresponds to 255 in stored data
+    public byte MinColorVal = 0; // stored value rendered as MinColor
+    public byte MaxColorVal = 255; // stored value rendered as MaxColor
+    public Color VoxColor1;
+    [Tooltip("Second edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
+    public Color VoxColor2;
+    public float VoxLineWidth = 0.02f;
 
     // metadata
     public double DriverSpeed { get; private set; } // Update(), seconds
@@ -77,11 +84,14 @@ public class EFPDriver : MonoBehaviour {
     private Stopwatch SubStopWatch = new Stopwatch();
     public Intersector.Occlusion Oc;
     private byte[,] SensorData;
-    private List<Visualizer.Content> VertMarkers = new List<Visualizer.Content>();
+    private List<Visualizer.Content> content = new List<Visualizer.Content>();
+    private List<Color> BoundColors = new List<Color>();
 
     // indicator flags
     private bool VerticesRendered;
     private bool ColoredMeshShown; // alternative is wireframe mesh
+    private bool voxVis = false;
+    private bool liveDataOnly = false;
 
     // control over vertice rendering
     public bool RenderVerts
@@ -122,6 +132,20 @@ public class EFPDriver : MonoBehaviour {
     {
         get { return VoxGridMan.Resolution; }
         set { VoxGridMan.Resolution = value; }
+    }
+
+    // control of voxel bounds rendering
+    public bool VoxVis
+    {
+        get { return voxVis; }
+        set { voxVis = value; }
+    }
+
+    // control for liveDataOnly
+    public bool LiveDataOnly
+    {
+        get { return liveDataOnly; }
+        set { liveDataOnly = value; }
     }
 
     // Use this for initialization
@@ -179,6 +203,9 @@ public class EFPDriver : MonoBehaviour {
         // update voxel grid
         SubStopWatch.Reset();
         SubStopWatch.Start();
+        // reset if LiveDataOnly
+        if (LiveDataOnly)
+            VoxGridMan.Reset();
         VoxGridMan.Set(Updates, UpdateVoxStruct);
         SubStopWatch.Stop();
         VoxGridManSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
@@ -186,21 +213,40 @@ public class EFPDriver : MonoBehaviour {
         // visualize data
         SubStopWatch.Reset();
         SubStopWatch.Start();
+        content = new List<Visualizer.Content>();
         // render spheres
         if (RenderVerts)
         {
-            VertMarkers = Visualizer.CreateMarkers(Updates, 
-                VertexMarkerSize, 0, 255, MinColor, MaxColor);
-            VertVis.Visualize(VertMarkers);
+            content.AddRange(Visualizer.CreateMarkers(Updates, 
+                VertexMarkerSize, MinColorVal, MaxColorVal, MinColor, MaxColor));
+            
         }
+        // visualize voxels
+        if (VoxVis)
+        {
+            List<Voxel<byte>> voxels = VoxGridMan.Voxels();
+            while (BoundColors.Count < voxels.Count)
+                BoundColors.Add(Visualizer.RandomColor(VoxColor1, VoxColor2));
+            for (int i = 0; i < voxels.Count; i++)
+            {
+                Bounds voxBound = new Bounds();
+                voxBound.min = voxels[i].min;
+                voxBound.max = voxels[i].max;
+                if (VertexInter.AnyInView(MeshManager.IntersectionPoints(voxBound), SensorField))
+                    content.AddRange(Visualizer.CreateBoundingLines(voxBound, VoxLineWidth, BoundColors[i]));
+            }
+        }
+        VertVis.Visualize(content);
         // color mesh
         if (ColoredMesh)
         {
             Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide, 
-                VoxGridMan, MinColor, MaxColor, 0, 255);
+                VoxGridMan, MinColor, MaxColor, NoDataColor, MinColorVal, MaxColorVal);
         }
         SubStopWatch.Stop();
         VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
+
+        
 
         StopWatch.Stop();
         DriverSpeed = StopWatch.ElapsedTicks / (double)Stopwatch.Frequency;

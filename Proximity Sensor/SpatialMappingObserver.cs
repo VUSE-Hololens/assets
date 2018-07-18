@@ -312,8 +312,10 @@ namespace HoloToolkit.Unity.SpatialMapping
                         Debug.Assert(worldAnchor != null);
                     }
 
+                    /*
                     // Debug
                     Debug.Log(string.Format("Requesting baking of Mesh {0} at Density {1}", surfaceID, Density));
+                    */
 
                     var surfaceData = new SurfaceData(
                         surfaceID,
@@ -382,32 +384,6 @@ namespace HoloToolkit.Unity.SpatialMapping
 
                 surfaceWorkQueue.Clear();
                 updateTime = 0;
-            }
-#endif
-        }
-
-        /// <summary>
-        /// pauses observer.
-        public void PauseObserver()
-        {
-#if UNITY_WSA
-            if (ObserverState == ObserverStates.Running)
-            {
-                Debug.Log("pausing the observer.");
-                ObserverState = ObserverStates.Stopped;
-            }
-#endif
-        }
-
-        /// <summary>
-        /// resumes observer.
-        public void ResumeObserver()
-        {
-#if UNITY_WSA
-            if (ObserverState == ObserverStates.Stopped)
-            {
-                Debug.Log("resuming the observer.");
-                ObserverState = ObserverStates.Running;
             }
 #endif
         }
@@ -654,9 +630,11 @@ namespace HoloToolkit.Unity.SpatialMapping
                 {
                     surfaceWorkQueue.Enqueue(ID);
 
+                    /*
                     // debug
                     Debug.Log(string.Format("Mesh {0}: Density does not conform. Was {1}, should be {2}. Added to surfaceWorkQuene.",
                         ID.handle, ExtraData[i].Density, newDensity));
+                    */
                 }
             }
             needRebake = false;

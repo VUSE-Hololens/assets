@@ -94,11 +94,7 @@ public class Octree<T>
         get { return minSize; }
         set
         {
-            if (value < minSize)
-                minSize = value;
-            if (value > minSize)
-                Reformat(value);
-                minSize = value;
+            minSize = value;
         }
     }
 
@@ -133,6 +129,14 @@ public class Octree<T>
     }
 
     /// <summary>
+    /// returns if voxel containing point is non-null
+    /// </summary>
+    public bool NonNullCell(Vector3 pointToGet)
+    {
+        return root.NonNullCell(pointToGet);
+    }
+
+    /// <summary>
     /// Sets value at Voxel containing point.
     /// If updateStruct, re-grids contained space so no voxel contains two points.
     /// If not, replaces value in vox.
@@ -158,8 +162,16 @@ public class Octree<T>
     }
 
     /// <summary>
+    /// Returns all voxels in octree.
+    /// </summary>
+    public List<Voxel<T>> Voxels()
+    {
+        return root.Voxels();
+    }
+
+    /// <summary>
     /// Reformats octree upon increase in MinSize.
-    /// Growing octree resets all data.
+    /// Resets all data
     /// </summary>
     private void Reformat(float newMinValue)
     {
@@ -296,6 +308,11 @@ public abstract class OctreeComponent<T>
     public abstract Vector3 getPoint(Vector3 pointToGet);
 
     /// <summary>
+    /// returns if voxel containing point is non-null
+    /// </summary>
+    public abstract bool NonNullCell(Vector3 pointToGet);
+
+    /// <summary>
     /// Collects metadata information on tree rooted at this component
     /// </summary>
     public abstract MetadataChange SubTreeData();
@@ -304,6 +321,11 @@ public abstract class OctreeComponent<T>
     /// Merges cells as appropriate for increase in MinSize.
     /// </summary>
     public abstract MetadataChange Reformat(float newMinSize);
+
+    /// <summary>
+    /// Returns list of all voxels contained in subtree rooted at this.
+    /// </summary>
+    public abstract List<Voxel<T>> Voxels();
 
     /// <summary>
     /// Accessor for Component's size.
@@ -439,6 +461,17 @@ public class OctreeContainer<T> : OctreeComponent<T>
         return children[childNum].getPoint(pointToGet);
     }
 
+    /// <summary>
+    /// returns if voxel containing point is non-null
+    /// </summary>
+    public override bool NonNullCell(Vector3 pointToGet)
+    {
+        if (!contains(pointToGet))
+            throw new ArgumentOutOfRangeException("pointToGet", "not contained in Container.");
+        int childNum = whichChild(pointToGet);
+        return children[childNum].NonNullCell(pointToGet);
+    }
+
     public override MetadataChange SubTreeData()
     {
         MetadataChange info = new MetadataChange(1, 0, 0, 0, 0);
@@ -480,10 +513,21 @@ public class OctreeContainer<T> : OctreeComponent<T>
     }
 
     /// <summary>
+    /// Returns all voxels contained in subtree rooted at this obj.
+    /// </summary>
+    public override List<Voxel<T>> Voxels()
+    {
+        List<Voxel<T>> result = new List<Voxel<T>>();
+        for (int i = 0; i < 8; i++)
+            result.AddRange(children[i].Voxels());
+        return result;
+    }
+
+    /// <summary>
     /// Mutator for a child.
     /// Used by Octree in grow, Voxel in split.
     /// NOTE: Private variable/public mutator is more safe than pure public variable.
-        /// Really wish C# allowed friend classes.
+    /// Really wish C# allowed friend classes.
     /// <summary>
     public void setChild(int childNum, OctreeComponent<T> newChild)
     {
@@ -661,6 +705,14 @@ public class Voxel<T> : OctreeComponent<T>
         return point;
     }
 
+    /// <summary>
+    /// returns if voxel containing point is non-null
+    /// </summary>
+    public override bool NonNullCell(Vector3 pointToGet)
+    {
+        return !nullVox;
+    }
+
     public override MetadataChange SubTreeData()
     {
         int nonNullVoxels;
@@ -675,6 +727,14 @@ public class Voxel<T> : OctreeComponent<T>
             nonNullVolume = volume();
         }
         return new MetadataChange(1, 1, nonNullVoxels, volume(), nonNullVolume);
+    }
+
+    public override List<Voxel<T>> Voxels()
+    {
+        // return list with just copy of this voxel.
+        List<Voxel<T>> result = new List<Voxel<T>>();
+        result.Add(new Voxel<T>(min, max, minSize, point, value));
+        return result; ;
     }
 
     /// <summary>
