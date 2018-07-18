@@ -108,7 +108,7 @@ namespace Receiving
             lock (syncLock)
             {
                 ID_NewImage = false;
-                return ID_ImageData1D.Clone();
+                return (byte[])ID_ImageData1D.Clone();
             }
         }
 
@@ -159,13 +159,16 @@ namespace Receiving
         }
 
 #if !UNITY_EDITOR
-        async void Start() //async
+        async void Start() 
         {
-            // initialized ID_ImageData1D to all Green to prove displayer working correctly
+            // initialize image array values and corresponding attributes
             Init_TestBand(240, 320, 0);
+
+            // create new server socket for host
             ServerSocket = new DatagramSocket();
             await StartServer();
-            // await SendBroadcast("Hello World!"); // dont need it 
+
+            // await SendBroadcast("Hello World!", RemoteIP, RemotePort); // dont need it 
         }
 
         private async System.Threading.Tasks.Task StartServer()
@@ -183,11 +186,11 @@ namespace Receiving
             }
         }
 
-        private async System.Threading.Tasks.Task SendBroadcast(string message)
+        private async System.Threading.Tasks.Task SendBroadcast(string message, string ip = "255.255.255.255", string port = "5000")
         {
             try  // send out a message, otherwise receiving does not work ?!
             {
-                var outputStream = await ServerSocket.GetOutputStreamAsync(new HostName(RemoteIP), RemotePort);
+                var outputStream = await ServerSocket.GetOutputStreamAsync(new HostName(ip), port);
                 DataWriter writer = new DataWriter(outputStream);
                 writer.WriteString(message);
                 await writer.StoreAsync();
@@ -245,11 +248,8 @@ namespace Receiving
             switch (data.Length)
             {
                 case (0):
-                    //byte[] processingBuffer = ImageBuffer;
                     break;
-                // It's only possible for start packets to be of size 3 (others must be >= 4)
                 case (START_PACKET_SIZE):
-                    // do nothing because all is coming in one packet
                     break;
                 default:
                     // add jpeg compressed byte[] received to image buffer
@@ -270,8 +270,8 @@ namespace Receiving
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
 
-                uint width = decoder.PixelWidth();
-                uint height = decoder.PixelHeight();
+                uint width = decoder.PixelWidth;
+                uint height = decoder.PixelHeight;
                 byte[] tmp = pixelData.DetachPixelData();
 
                 //synthesize to one band
