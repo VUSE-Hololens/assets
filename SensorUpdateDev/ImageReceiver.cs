@@ -38,13 +38,13 @@ namespace Receiving
         private const int COMPRESSED_JPEG = 3;
 
         private int ReceivingStatus = AWAITING_IMAGE;
-        private byte[] ImageBuffer = null;
+
+        private readonly object syncLock = new object();
 
         private byte[] ID_ImageData1D;
-        //private int ID_ImageType;
         private int ID_ImageWidth;
         private int ID_ImageHeight;
-        private string ID_Message = "testing";
+        //private string ID_Message = "testing";
         private bool ID_NewImage = false;
         private double ID_fps = 0;
         private DateTime time;
@@ -68,49 +68,75 @@ namespace Receiving
         }
 
         //get methods
-        public string Get_Message() { return ID_Message; }
+        public double Get_fps()
+        {
+            lock (syncLock)
+            {
+                return ID_fps;
+            }
+        }
 
-        public double Get_fps() { return ID_fps; }
+        public bool CheckNewImage() {
+            lock (syncLock)
+            {
+                return ID_NewImage;
+            }
+        }
 
-        public bool CheckNewImage() { return ID_NewImage; }
+        public int Get_ImageWidth()
+        {
+            lock (syncLock)
+            {
+                return ID_ImageWidth;
+            }
+        }
 
-        // public int Get_ImageType() { return ID_ImageType; }
-        
-        public int Get_ImageWidth() { return ID_ImageWidth; }
-
-        public int Get_ImageHeight() { return ID_ImageHeight; }
+        public int Get_ImageHeight()
+        {
+            lock (syncLock)
+            {
+                return ID_ImageHeight;
+            }
+        }
 
         public byte[] Get_ImageData1D()
         {
-            ID_NewImage = false;
-            return ID_ImageData1D;
+            lock (syncLock)
+            {
+                ID_NewImage = false;
+                return ID_ImageData1D.Clone;
+            }
         }
 
         private void Init_TestBand(int width, int height, int num = 2)
         {
-            ID_ImageWidth = width;
-            ID_ImageHeight = height;
-            ID_ImageData1D = new byte[width * height];
-            for (int x = 0; x < width; x++)
+            lock (syncLock)
             {
-                for (int y = 0; y < height; y++)
+
+                ID_ImageWidth = width;
+                ID_ImageHeight = height;
+                ID_ImageData1D = new byte[width * height];
+                for (int x = 0; x < width; x++)
                 {
-                    switch (num)
+                    for (int y = 0; y < height; y++)
                     {
-                        case (0):
-                            float val = 255.0f * ((x + y + 0.0f) / (width + height));
-                            ID_ImageData1D[x + y * width] = (byte)val;
-                            break;
-                        case (1):
-                            ID_ImageData1D[x + y * width] =  255;
-                            break;
-                        default:
-                            ID_ImageData1D[x + y * width] = 0;
-                            break;
+                        switch (num)
+                        {
+                            case (0):
+                                float val = 255.0f * ((x + y + 0.0f) / (width + height));
+                                ID_ImageData1D[x + y * width] = (byte)val;
+                                break;
+                            case (1):
+                                ID_ImageData1D[x + y * width] = 255;
+                                break;
+                            default:
+                                ID_ImageData1D[x + y * width] = 0;
+                                break;
+                        }
                     }
                 }
+                ID_NewImage = true;
             }
-            ID_NewImage = true;
         }
 
         // Update is called once per frame
@@ -126,6 +152,7 @@ namespace Receiving
                 ReceivingStatus = AWAITING_IMAGE;
             }
         }
+
 #if !UNITY_EDITOR
         async void Start() //async
         {
@@ -221,9 +248,9 @@ namespace Receiving
                     break;
                 default:
                     // add jpeg compressed byte[] received to image buffer
-                    ImageBuffer = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
-                    Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, ImageBuffer, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
-                    ProcessImageArr(ImageBuffer);
+                    byte[] strippedData = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
+                    Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, strippedData, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
+                    ProcessImageArr(strippedData);
                     break;
             }
         }
@@ -237,25 +264,36 @@ namespace Receiving
                 MemoryStream stream = new MemoryStream(img);
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
-               
-                ID_ImageWidth = (int)decoder.PixelWidth;
-                ID_ImageHeight = (int)decoder.PixelHeight;
 
+                uint width = decoder.PixelWidth();
+                uint height = decoder.PixelHeight();
                 byte[] tmp = pixelData.DetachPixelData();
 
-                ID_NewImage = false; // unnecesary, but ensures cant be accessed while updating.
-                ID_ImageData1D = new byte[ID_ImageWidth * ID_ImageHeight];
                 //synthesize to one band
+                byte[] tmpImgData = new byte[(int)width * (int)height];
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
-                    ID_ImageData1D[i / 4] = RGBAToByte(tmp[i+0], tmp[i+1], tmp[i+2], tmp[i+3]);
+                    tmpImgData[i / 4] = RGBAToByte(tmp[i + 0], tmp[i + 1], tmp[i + 2], tmp[i + 3]);
+                }
+
+                lock (syncLock)
+                {
+                    ID_NewImage = false; // unnecesary, but ensures cant be accessed while updating.
+
+                    lock (ID_ImageData1D)
+                    {
+                        ID_ImageWidth = (int)decoder.PixelWidth;
+                        ID_ImageHeight = (int)decoder.PixelHeight;
+                        ID_ImageData1D = tmpImgData;
+                    }
+
+                    ID_NewImage = true;
+
+                    ID_fps = 1.0 / (DateTime.Now.Subtract(time).TotalSeconds);
+                    time = DateTime.Now;
                 }
                 tmp = null;
-
-                ID_NewImage = true;
-
-                ID_fps = 1.0/(DateTime.Now.Subtract(time).TotalSeconds);
-                time = DateTime.Now;
+                tmpImgData = null;
             }
             catch (Exception ex)
             {
