@@ -282,8 +282,8 @@ namespace Receiving
 
                     lock (ID_ImageData1D)
                     {
-                        ID_ImageWidth = (int)decoder.PixelWidth;
-                        ID_ImageHeight = (int)decoder.PixelHeight;
+                        ID_ImageWidth = (int)width;
+                        ID_ImageHeight = (int)height;
                         ID_ImageData1D = tmpImgData;
                     }
 
