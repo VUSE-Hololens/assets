@@ -18,14 +18,17 @@ namespace Receiving
 {
     public class ImageReceiver : MonoBehaviour
     {
-        static readonly string RemoteIP = "10.67.87.102";
-        static readonly string RemotePort = "5000";
+        // Server/Client Settings
+        //static readonly string RemoteIP = "10.67.87.102"; // needed only if broadcasting message
+        //static readonly string RemotePort = "5000";
         static readonly string LocalPort = "5001";
 
+        //packet attributes
         private const int PACKET_SIZE = 20000;
         private const int NORMAL_PACKET_INDEX_BYTES = 3;
         private const int START_PACKET_SIZE = 3;
 
+        // Image Status Constants -> wont need when single packet transmission
         private const char START_RGB = 'M';
         private const char START_ONE_BAND = 'I';
 
@@ -41,15 +44,16 @@ namespace Receiving
 
         private readonly object syncLock = new object();
 
+        // gettable attributes
         private byte[] ID_ImageData1D;
         private int ID_ImageWidth;
         private int ID_ImageHeight;
-        //private string ID_Message = "testing";
         private bool ID_NewImage = false;
         private double ID_fps = 0;
         private DateTime time;
         private int ImgCount = 0;
 
+        // Queue to execute processing on main thread. 
         private readonly ConcurrentQueue<Action> ExecuteOnMainThread = new ConcurrentQueue<Action>();
 
 #if !UNITY_EDITOR
@@ -104,10 +108,11 @@ namespace Receiving
             lock (syncLock)
             {
                 ID_NewImage = false;
-                return ID_ImageData1D.Clone;
+                return ID_ImageData1D.Clone();
             }
         }
 
+        // initializes array
         private void Init_TestBand(int width, int height, int num = 2)
         {
             lock (syncLock)
