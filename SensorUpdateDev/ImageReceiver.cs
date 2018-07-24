@@ -53,6 +53,10 @@ namespace Receiving
         private DateTime time;
         private int ImgCount = 0;
 
+        // image direction controls
+        private int rotationState = 0;
+        private int flipState = 0;
+
         // Queue to execute processing on main thread. 
         private readonly ConcurrentQueue<Action> ExecuteOnMainThread = new ConcurrentQueue<Action>();
 
@@ -109,6 +113,55 @@ namespace Receiving
             {
                 ID_NewImage = false;
                 return (byte[])ID_ImageData1D.Clone();
+            }
+        }
+
+        //set methods
+        public void Set_Rotation(string direction)
+        {
+            int state = 0;
+            switch (direction.ToUpper())
+            {
+                case ("CCW"):
+                    state = 1;
+                    break;
+                case ("180"):
+                    state = 2;
+                    break;
+                case ("CW"):
+                    state = 3;
+                    break;
+                default:
+                    state = 0;
+                    break;
+            }
+            lock(syncLock)
+            {
+                rotationState = state;
+            }
+        }
+
+        public void Set_Flip(string direc)
+        {
+            int flip = 0;
+            switch (direc.ToUpper())
+            {
+                case ("HORIZONTAL"):
+                    flip = 1;
+                    break;
+                case ("VERTICAL"):
+                    flip = 2;
+                    break;
+                case ("BOTH"):
+                    flip = 3;
+                    break;
+                default:
+                    flip = 0;
+                    break;
+            }
+            lock (syncLock)
+            {
+                flipState = flip;
             }
         }
 
@@ -270,16 +323,20 @@ namespace Receiving
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
 
-                uint width = decoder.PixelWidth;
-                uint height = decoder.PixelHeight;
+                int width = (int)decoder.PixelWidth;
+                int height = (int)decoder.PixelHeight;
                 byte[] tmp = pixelData.DetachPixelData();
 
+                int bands = 4;
                 //synthesize to one band
-                byte[] tmpImgData = new byte[(int)width * (int)height];
+                byte[] tmpImgData = new byte[width * height];
+
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
                     tmpImgData[i / 4] = RGBAToByte(tmp[i + 0], tmp[i + 1], tmp[i + 2], tmp[i + 3]);
                 }
+
+                tmpImgData = reformatBandImg(tmpImgData, ref width, ref height);
 
                 lock (syncLock)
                 {
@@ -287,8 +344,8 @@ namespace Receiving
 
                     lock (ID_ImageData1D)
                     {
-                        ID_ImageWidth = (int)width;
-                        ID_ImageHeight = (int)height;
+                        ID_ImageWidth = width;
+                        ID_ImageHeight = height;
                         ID_ImageData1D = tmpImgData;
                     }
 
@@ -306,6 +363,70 @@ namespace Receiving
             }
         }
 #endif
+        private byte[] reformatBandImg(byte[] imageData, ref int width, ref int height)
+        {
+            /* Bitmap bmp;
+            using (var ms = new MemoryStream(imageData))
+            {
+                bmp = new Bitmap(ms);
+            } */
+
+            byte[] outArr = new byte[img.Length];
+            lock (syncLock) {
+                int flip = flipState;
+                int rotate = rotationState;
+            }
+            switch ((rotate, flip))
+            {
+                case ((0, 0)):
+                    return x + width * y;
+                case ((0, 1)):
+                    for (int x = width - 1; x >= 0; --x)
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+
+                        }
+                    }
+                    return 0;
+                case ((0, 2)):
+                    return 0;
+                case ((0, 3)):
+                    return 0;
+                case ((1, 0)):
+                    return 0;
+                case ((1, 1)):
+                    return 0;
+                case ((1, 2)):
+                    return 0;
+                case ((1, 3)):
+                    return 0;
+                case ((2, 0)):
+                    return 0;
+                case ((2, 1)):
+                    return 0;
+                case ((2, 2)):
+                    return 0;
+                case ((2, 3)):
+                    return 0;
+                case ((3, 0)):
+                    return 0;
+                case ((3, 1)):
+                    return 0;
+                case ((3, 2)):
+                    return 0;
+                case ((3, 3)):
+                    return 0;
+            }
+        }
+
+        private void IntSwap(ref int a, ref int b)
+        {
+            int tmp = a;
+            a = b;
+            b = tmp;
+        }
+
         private byte RGBAToByte(byte r, byte g, byte b, byte a)
         {
             return (byte)((0 + r + g + b) / 3);
