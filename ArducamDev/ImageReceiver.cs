@@ -300,21 +300,19 @@ namespace Receiving
                 MemoryStream stream = new MemoryStream(img);
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
-                Debug.Log("Pixel Data Created");
+                Debug.Log("Pixel Data Created. Format: " + decoder.BitmapPixelFormat);
 
                 uint width = decoder.PixelWidth;
                 uint height = decoder.PixelHeight;
-                byte[] tmpImgData = pixelData.DetachPixelData();
-                Debug.Log("Pixel Data Detached");
+                byte[] tmp = pixelData.DetachPixelData();
+                Debug.Log("Pixel Data Detached. Length: " + tmp.Length + ", Size: (" + width + ", " + height + ")");
 
                 //synthesize to one band
-                //byte[] tmpImgData = new byte[(int)width * (int)height];
-                /*
+                byte[] tmpImgData = new byte[(int)width * (int)height];
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
                     tmpImgData[i / 4] = RGBAToByte(tmp[i + 0], tmp[i + 1], tmp[i + 2], tmp[i + 3]);
                 }
-                */
 
                 lock (syncLock)
                 {
@@ -343,11 +341,11 @@ namespace Receiving
 #endif
         private byte RGBAToByte(byte r, byte g, byte b, byte a)
         {
-            float green = (float)g;
-            float red = (float)r;
-            float blue = (float)b;
-
-            return (byte)(255f * (green / (red + green + blue)));
+            //float green = (float)g;
+            //float red = (float)r;
+            //float blue = (float)b;
+            //return (byte)(255f * (green / (red + green + blue)));
+            return Math.Max(Math.Max(r, g), b);
         }
 
         private static MemoryStream ToMemoryStream(Stream input)
