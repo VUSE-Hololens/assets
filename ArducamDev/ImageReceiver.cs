@@ -244,13 +244,7 @@ namespace Receiving
                 byte[] data = ToMemoryStream(streamIn).ToArray();
                 Debug.Log("Data array created of length " + data.Length);
                 // enqueue all, continually stack // used for managing events, creates a group of actions
-                if (ReceivingStatus == AWAITING_IMAGE) // unnecessary but clean up later if things work?
-                {
-                    ExecuteOnMainThread.Enqueue(() =>
-                    {
-                        ProcessPacket(data);
-                    });
-                } 
+                ProcessPacket(data);
             });
         }
 
@@ -285,11 +279,14 @@ namespace Receiving
                     // do nothing because all is coming in one packet
                     break;
                 default:
-                    // add jpeg compressed byte[] received to image buffer
-                    byte[] strippedData = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
-                    Debug.Log("Stripped Data Array created of length " + strippedData.Length);
-                    Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, strippedData, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
-                    ProcessImageArr(strippedData);
+                    ExecuteOnMainThread.Enqueue(() =>
+                    {
+                        // add jpeg compressed byte[] received to image buffer
+                        byte[] strippedData = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
+                        Debug.Log("Stripped Data Array created of length " + strippedData.Length);
+                        Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, strippedData, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
+                        ProcessImageArr(strippedData);
+                    });
                     break;
             }
         }
