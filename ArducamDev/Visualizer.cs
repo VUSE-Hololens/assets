@@ -263,7 +263,7 @@ public class Visualizer
     /// </summary>
     public static void ColorMesh(ReadOnlyCollection<SpatialMappingSource.SurfaceObject> allMeshes, 
         List<SurfacePoints> extraData, List<bool> meshGuide, VoxelGridManager<byte> voxGrid,
-        Color32 color1, Color32 color2, Color32 noDataColor, byte value1, byte value2)
+        Color32 color1, Color32 color2, Color32 noDataColor, byte value1, byte value2, byte alpha)
     {
         for (int i = 0; i < allMeshes.Count; i++)
         {
@@ -272,11 +272,16 @@ public class Visualizer
                 List<Color32> coloring = new List<Color32>();
                 for (int j = 0; j < extraData[i].Wvertices.Count; j++)
                 {
+                    Color32 col;
                     if (voxGrid.Contains(extraData[i].Wvertices[j]) && voxGrid.NonNullCell(extraData[i].Wvertices[j]))
-                        coloring.Add(ScaleColor(voxGrid.Get(extraData[i].Wvertices[j]), value1, value2, color1, color2));
+                        col = ScaleColor(voxGrid.Get(extraData[i].Wvertices[j]), value1, value2, color1, color2);
                     else
-                        coloring.Add(noDataColor);
+                        col = noDataColor;
+
+                    col.a = alpha;
+                    coloring.Add(col);
                 }
+
                 allMeshes[i].Filter.sharedMesh.SetColors(coloring);
             }
         }

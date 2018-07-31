@@ -87,10 +87,10 @@ public class Intersector
         /// Returns i,j pixel coordinates of this ViewVector within 1D rep of pixelGrid 
             /// of height, width spanning across FOV
         /// </summary>
-        public int Map<T>(T[] grid, int height, int width, ViewVector FOV)
+        public int Map<T>(T[] grid, int height, int width, ViewVector FOV, Vector2 FOVReduction)
         {
-            int i = (int)(width / 2 + width * (Theta / FOV.Theta));
-            int j = (int)(height / 2 + height * (Phi / FOV.Phi));
+            int i = (int)(width / 2 + width * (Theta / (FOV.Theta / FOVReduction.x)));
+            int j = (int)(height / 2 - height * (Phi / (FOV.Phi/ FOVReduction.y)));
 
             // ensure in grid
             if (i < 0)
@@ -345,7 +345,7 @@ public class Intersector
     /// </summary>
     public List<PointValue<byte>> ProjectToVisible(byte[] raster, Frustum viewField, int height, int width, 
         Occlusion oc, List<SurfacePoints> extras, List<bool> meshGuide,
-        float closest, float furthest, Vector3 curPos)
+        float closest, float furthest, Vector3 curPos, Vector2 FOVReduction, bool proxConfig)
     {   
         // reset metadata
         CheckedVertices = 0;
@@ -356,7 +356,7 @@ public class Intersector
         List<CachedVertex> visible = AllInView(extras, meshGuide, viewField, oc);
         
         // project to visible
-        return Project(visible, viewField, raster, height, width, closest, furthest, curPos);
+        return Project(visible, viewField, raster, height, width, closest, furthest, curPos, FOVReduction, proxConfig);
     }
 
     /// <summary>
@@ -379,7 +379,7 @@ public class Intersector
 
                     if (viewField.FOV.Contains(vv))
                     {
-                        Vector2 coords = vv.Map<Occlusion.OcclusionCell>(oc.grid, viewField.FOV);
+                        Vector2 coords = vv.Map<Occlusion.OcclusionCell>(oc.grid, oc.FOV);
                         CachedVertex cv = new CachedVertex(pt, i, j);
 
                         if (oc.grid[(int)coords.x, (int)coords.y].nullCell ||
@@ -405,7 +405,7 @@ public class Intersector
     /// according to color1 to color2, value1 to value2 scale.
     /// </summary>
     private List<PointValue<byte>> Project(List<CachedVertex> points, Frustum viewField, byte[] raster, 
-        int height, int width, float closest, float furthest, Vector3 curPos)
+        int height, int width, float closest, float furthest, Vector3 curPos, Vector2 FOVReduction, bool proxConfig)
     {
         List<PointValue<byte>> result = new List<PointValue<byte>>();
 
@@ -417,8 +417,20 @@ public class Intersector
             if (!viewField.FOV.Contains(vv))
                 throw new ArgumentOutOfRangeException("pt", "not contained in viewField.FOV");
 
-            int index = vv.Map<byte>(raster, height, width, viewField.FOV);
-            PointValue<byte> pv = new PointValue<byte>(pt, raster[index]);
+            PointValue<byte> pv;
+
+            if (!proxConfig)
+            {
+                // external sensor configuration
+                int index = vv.Map<byte>(raster, height, width, viewField.FOV, FOVReduction);
+                pv = new PointValue<byte>(pt, raster[index]);
+            } else
+            {
+                // proximity sensor configuration
+                byte colorVal = (byte)Mathf.Clamp(255f * (Vector(curPos, pt).magnitude - closest) / (furthest - closest),
+                0, 255);
+                pv = new PointValue<byte>(pt, colorVal);
+            }
 
             // add pv to return
             result.Add(pv);

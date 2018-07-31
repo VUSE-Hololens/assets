@@ -16,15 +16,21 @@ using Windows.Storage.Streams;
 
 namespace Receiving
 {
+    public enum DefaultData { diagonalGradient, verticalGradient, allMax, preloadedImg}
+
     public class ImageReceiver : MonoBehaviour
     {
+        // inspector vars
+        [Tooltip("Default sensor data to send until actual sensor data recieved.")]
+        public DefaultData InitializedData = DefaultData.diagonalGradient;
+        
         // Server/Client Settings
         static readonly string RemoteIP = "10.67.87.102"; // needed only if broadcasting message
         static readonly string RemotePort = "5000";
         static readonly string LocalPort = "5001";
 
         //packet attributes
-        private const int PACKET_SIZE = 20000;
+        private const int PACKET_SIZE = 30000;
         private const int NORMAL_PACKET_INDEX_BYTES = 3;
         private const int START_PACKET_SIZE = 3;
 
@@ -113,33 +119,54 @@ namespace Receiving
         }
 
         // initializes array
-        private void Init_TestBand(int width, int height, int num = 2)
+        private void Init_TestBand(int width, int height)
         {
+            // determine code for Init_TestBand
+            int numCode = -1;
+            if (InitializedData == DefaultData.diagonalGradient)
+                numCode = 0;
+            else if (InitializedData == DefaultData.allMax)
+                numCode = 1;
+            else if (InitializedData == DefaultData.verticalGradient)
+                numCode = 2;
+            else if (InitializedData == DefaultData.preloadedImg)
+                numCode = 3;
+
             lock (syncLock)
             {
-
-                ID_ImageWidth = width;
                 ID_ImageHeight = height;
+                ID_ImageWidth = width;
                 ID_ImageData1D = new byte[width * height];
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
                     {
-                        switch (num)
+                        // control output data until data recieved from sensor
+                        switch (numCode)
                         {
                             case (0):
+                                // diagonal gradient
                                 float val = 255.0f * ((x + y + 0.0f) / (width + height));
                                 ID_ImageData1D[x + y * width] = (byte)val;
                                 break;
                             case (1):
+                                // all max
                                 ID_ImageData1D[x + y * width] = 255;
                                 break;
+                            case (2):
+                                // vertical gradient
+                                ID_ImageData1D[x + y*width] = (byte)(255.0*(height-y)/height);
+                                break;
                             default:
-                                ID_ImageData1D[x + y * width] = 0;
+                                // preloaded images
+                                ID_ImageWidth = NDVIDataBytes.width;
+                                ID_ImageHeight = NDVIDataBytes.height;
+                                ID_ImageData1D = NDVIDataBytes.NDVI_right;
                                 break;
                         }
                     }
                 }
+                Debug.Log(string.Format("Height: {0}, Width: {1}, Length: {2}", ID_ImageHeight, ID_ImageWidth, ID_ImageData1D.Length));
                 ID_NewImage = true;
             }
         }
@@ -161,8 +188,10 @@ namespace Receiving
 #if !UNITY_EDITOR
         async void Start() //async
         {
+            
+        
             // initialized ID_ImageData1D to all Green to prove displayer working correctly
-            Init_TestBand(240, 320, 0);
+            Init_TestBand(300, 400);
             ServerSocket = new DatagramSocket();
             await StartServer();
             // await SendBroadcast("Hello World!"); // dont need it 
@@ -273,13 +302,15 @@ namespace Receiving
                 uint width = decoder.PixelWidth;
                 uint height = decoder.PixelHeight;
                 byte[] tmp = pixelData.DetachPixelData();
-
+                
                 //synthesize to one band
-                byte[] tmpImgData = new byte[(int)width * (int)height];
+                byte[] tmpImgData = tmp; //new byte[(int)width * (int)height];
+                /*
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
                     tmpImgData[i / 4] = RGBAToByte(tmp[i + 0], tmp[i + 1], tmp[i + 2], tmp[i + 3]);
                 }
+                */
 
                 lock (syncLock)
                 {
@@ -308,8 +339,13 @@ namespace Receiving
 #endif
         private byte RGBAToByte(byte r, byte g, byte b, byte a)
         {
-            return (byte)((0 + r + g + b) / 3);
+            float green = (float)g;
+            float red = (float)r;
+            float blue = (float)b;
+
+            return (byte)(255f * (green / (red + green + blue)));
         }
+
         private static MemoryStream ToMemoryStream(Stream input)
         {
             try

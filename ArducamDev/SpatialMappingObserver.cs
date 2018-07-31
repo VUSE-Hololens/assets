@@ -57,17 +57,12 @@ namespace HoloToolkit.Unity.SpatialMapping
     /// The SpatialMappingObserver class encapsulates the SurfaceObserver into an easy to use
     /// object that handles managing the observed surfaces and the rendering of surface geometry.
     /// </summary>
+    [RequireComponent(typeof(EFPDriver))]
     public class SpatialMappingObserver : SpatialMappingSource
     {
         // inspector vars
-        [Tooltip("Include dummy mesh for testing in Unity Editor?")]
+        [Tooltip("Include dummy mesh for testing in Unity Editor? DOES NOT WORK")]
         public bool Test = false;
-
-        [Tooltip("The number of triangles to calculate per cubic meter.")]
-        public float DefaultTrianglesPerCubicMeter = 500f;
-
-        [Tooltip("How long to wait (in sec) between Spatial Mapping updates.")]
-        public float TimeBetweenUpdates = 3.5f;
 
         /// <summary>
         /// Indicates the current state of the Surface Observer.
@@ -95,6 +90,17 @@ namespace HoloToolkit.Unity.SpatialMapping
                 }
             }
         }
+
+        // privatized inspector vars: do not need to be seen
+        private float DefaultTrianglesPerCubicMeter = 500f; // overwritten immeadiately by menu control
+        private float timeBetweenUpdates = 3.5f; // overwritten immeadiately by menu control
+        public float TimeBetweenUpdates
+        {
+            get { return timeBetweenUpdates; }
+            set { timeBetweenUpdates = value; }
+        }
+
+
 
 #if UNITY_WSA
         /// <summary>
@@ -338,7 +344,7 @@ namespace HoloToolkit.Unity.SpatialMapping
                         ReclaimSurface(newSurface);
                     }
                 }
-                else if ((Time.unscaledTime - updateTime) >= TimeBetweenUpdates)
+                else if ((Time.unscaledTime - updateTime) >= timeBetweenUpdates)
                 {
                     observer.Update(SurfaceObserver_OnSurfaceChanged);
                     updateTime = Time.unscaledTime;
@@ -365,7 +371,7 @@ namespace HoloToolkit.Unity.SpatialMapping
                 ObserverState = ObserverStates.Running;
 
                 // We want the first update immediately.
-                updateTime = -TimeBetweenUpdates;
+                updateTime = -timeBetweenUpdates;
             }
 #endif
         }

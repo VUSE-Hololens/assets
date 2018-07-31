@@ -1,6 +1,5 @@
 ﻿/// MeshManager
 /// Interface for Hololens spatial mapping data via HoloToolKit/SpatialMapping/SpatialMappingObserver.
-/// Has inspector variables but NOT Monobehavior - whereever used must be included as additional GameObject Component.
 /// Singleton - ALWAYS access via Instance. NEVER use constructor.
 /// Mark Scherer, June 2018
 
@@ -15,23 +14,6 @@ using HoloToolkit.Unity.SpatialMapping;
 [RequireComponent(typeof(HoloToolkit.Unity.SpatialMapping.SpatialMappingObserver))]
 public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
 {
-    // Inspector Var: misc
-    [Tooltip("Put default material here.")]
-    public Material DefaultMaterial;
-    // Inspector Vars
-    [Tooltip("Factor to multiply EFPDriver SensorFOV by for determining if a mesh is in view.")]
-    public float FOVFactor = 2f;
-    [Tooltip("Default to rendering bounding boxes around individual meshes?")]
-    public bool DefaultVisualizeBounds = false;
-    [Tooltip("Size of markers for intersector points of mesh bounding boxes, if rendered. Meters.")]
-    public float MarkerSize = 0.05f;
-    [Tooltip("Width of lines of mesh bounding boxes, if rendered. Meters.")]
-    public float LineSize = 0.02f;
-    [Tooltip("First edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
-    public Color BoundsColor1;
-    [Tooltip("Second edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
-    public Color BoundsColor2;
-
     /// <summary>
     /// Metadata: number of independent meshes returned by SpatialMappingManager.
     /// NOTE: only updated when getVertices() is called.
@@ -76,12 +58,6 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     // other variables
     private SpatialMappingObserver observer;
     private Intersector MeshInter;
-    public Visualizer BoundsVis;
-    private List<Color> BoundColors = new List<Color>();
-    public Intersector.ViewVector FOV { get; private set; }
-
-    // indicator flags
-    private bool BoundsVisualized;
 
     void Start()
     {
@@ -102,10 +78,6 @@ public class MeshManager : HoloToolkit.Unity.Singleton<MeshManager>
     public List<bool> UpdateVertices(Intersector.Frustum SensorView)
     {
         Density = observer.Density;
-
-        // Adjust Sensor.FOV by specified factor...
-        FOV = new Intersector.ViewVector(FOVFactor * SensorView.FOV.Phi, FOVFactor * SensorView.FOV.Phi);
-        SensorView.FOV = FOV;
 
         // create fresh lists, metadata
         List<bool> visiblilty = new List<bool>();

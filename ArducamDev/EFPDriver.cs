@@ -21,56 +21,73 @@ using HoloToolkit.Unity.SpatialMapping;
     // live: only vertices currently in sensor FOV are rendered with voxel grid data, else'no data'
 public enum DataFilter { mesh, all, live};
 
-[RequireComponent(typeof(MeshManager))]
+[RequireComponent(typeof(SpatialMappingManager))]
+[RequireComponent(typeof(SpatialMappingObserver))]
 public class EFPDriver : MonoBehaviour {
 
-    // Inspector variables: misc
+    // Inspector variables: Dependencies
+    [Header("Dependencies")]
+    [Tooltip("put gameobject containing data update script here.")]
+    public GameObject DataUpdateContainer;
     [Tooltip("Put default material here")]
     public Material DefaultMaterial;
+    [Tooltip("Material for mesh colored by data values.")]
+    public Material ColoredMeshMaterial;
+    [Tooltip("Material for wireframe mesh.")]
+    public Material WireframeMaterial;
+
     // Inspector variables: sensor specs
-    [Tooltip("FOV of sensor. Degrees.")]
+    [Header("Sensor Specs")]
+    [Tooltip("Actual FOV of sensor. Degrees.")]
     public Vector2 SensorFOV = new Vector2(30, 17);
-    // Inspector variables: mesh verte occlusion controls
+    [Tooltip("Reduction factor for used FOV of sensor from actual FOV.")]
+    public Vector2 SensorFOVReduction; // reduce FOV of sensor by this factor
+    [Tooltip("Offset of sensor's position in Hololens local coordinates. Meters.")]
+    public Vector3 Offset;
+    
+    // Inspector variables: mesh vertice occlusion controls
+    [Header("Occlusion and Voxel Grid")]
     [Tooltip("Minimum actual object size to be considered by occlusion alogrithm. Meters.")]
     public float OcclusionObjSize = 0.1f;
     [Tooltip("Distance at which to evaluate object size for occlusion algorithm. Meters.")]
     public float OcclusionObjDistance = 5f;
+
     // Inspector variables: voxel grid controls
-    [Tooltip("Update structure of voxel grid when setting points?")]
-    public bool UpdateVoxStruct = true;
-    [Tooltip("Starting minimum size of voxel. Meters.")]
-    public float DefaultVoxGridRes = 0.1f;
     [Tooltip("Size of new voxels when growing grid. Meters.")]
     public float DefaultVoxelSize = 1f;
-    // Inspector variables: mesh vertex rendering controls
+
+    // Inspector variables: data rendering controls
+    [Header("Rendering")]
+    [Tooltip("Color of matching min data value.")]
+    public Color MinColor;
+    [Tooltip("Color of matching max data value.")]
+    public Color MaxColor;
+    [Tooltip("Color for points without attached data.")]
+    public Color NoDataColor;
+    [Space(10)]
     [Tooltip("Default to rendering non-occluded mesh vertices?")]
     public bool DefaultRenderVerts = true;
     [Tooltip("Size of markers of mesh vertices, if rendered. Meters.")]
     public float VertexMarkerSize = 0.05f;
-    [Tooltip("Color of markers for vertices with min value, if rendered.")]
-    public Color MinColor;
-    [Tooltip("Color of markers for vertices with max value, if rendered.")]
-    public Color MaxColor;
-    public Color NoDataColor;
-    // mesh materials
-    [Tooltip("Colored mesh material")]
-    public Material Material1;
-    [Tooltip("Wireframe material")]
-    public Material Material2;
-    // proximity settings
-    public float Closest = 0.5f; // meters, corresponds to 0 in stored data
-    public float Furthest = 5; // meters, corresponds to 255 in stored data
-    public byte MinColorVal = 0; // stored value rendered as MinColor
-    public byte MaxColorVal = 255; // stored value rendered as MaxColor
-    public float ShowFrac = 0.1f; // fraction of voxels to visualize
+    [Space(10)]
+
+    // Inspector vars: bounds rendering
+    [Tooltip("First edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
     public Color BoundsColor1;
     [Tooltip("Second edge of random colors of markers and lines of mesh bounding boxes, if rendered.")]
     public Color BoundsColor2;
     public float BoundsLineWidth = 0.02f;
-    public DataFilter VoxGridFilter = DataFilter.mesh;
-    // Sensor Data update container
-    public GameObject DataUpdateContainer;
 
+    // Inspector variables: proximity settings
+    // Note: Only applies if code changed to proximity sensor configuration.
+    [Header("Proximity Sensor Settings")]
+    [Tooltip("Default to proximity sensor configuration?")]
+    public bool DefaultToProximity = false;
+    [Tooltip("Min distance, meters. ONLY applies if code changed to proximity sensor configuration.")]
+    public float Closest = 0.5f;
+    [Tooltip("Max distance, meters. ONLY applies if code changed to proximity sensor configuration.")]
+    public float Furthest = 5;
+    
     // metadata
     public double DriverSpeed { get; private set; } // Update(), seconds
     public double MeshManSpeed { get; private set; } // MeshManager:UpdateVertices(), seconds
@@ -87,7 +104,13 @@ public class EFPDriver : MonoBehaviour {
     public SpatialMappingObserver Observer { get; private set; }
     public Receiving.ImageReceiver SensorDataUpdater { get; private set; }
 
-    // pre-declarations
+    // other req'd variables
+    private float DefaultVoxGridRes = 0.1f;
+    private List<Voxel<byte>> Voxels; // script's cache of voxels ONLY for bounds visualization
+    private List<Bounds> MeshBounds; // script's cache of mesh bounds
+    private List<float> BoundsRandNums; // script's cache of colors for bounds visualization
+
+    // pre-declarations of class variables
     public Intersector.Frustum SensorField = new Intersector.Frustum();
     private Stopwatch StopWatch = new Stopwatch();
     private Stopwatch SubStopWatch = new Stopwatch();
@@ -98,13 +121,8 @@ public class EFPDriver : MonoBehaviour {
     private List<Visualizer.Content> content = new List<Visualizer.Content>();
     private List<Color> BoundColors = new List<Color>();
 
-    // indicator flags
-    private bool VerticesRendered;
-    private bool ColoredMeshShown; // alternative is wireframe mesh
-    private bool voxVis = false;
-    private bool meshBoundsVis = false;
-
     // control over vertice rendering
+    private bool VerticesRendered;
     public bool RenderVerts
     {
         get { return VerticesRendered; }
@@ -122,6 +140,7 @@ public class EFPDriver : MonoBehaviour {
     }
 
     // control material of rendered surface mesh
+    private bool ColoredMeshShown; // alternative is wireframe mesh
     public bool ColoredMesh
     {
         get { return ColoredMeshShown; }
@@ -130,9 +149,9 @@ public class EFPDriver : MonoBehaviour {
             if (value != ColoredMeshShown)
             {
                 if (value)
-                    GetComponent<SpatialMappingManager>().SurfaceMaterial = Material1;
+                    GetComponent<SpatialMappingManager>().SurfaceMaterial = ColoredMeshMaterial;
                 else
-                    GetComponent<SpatialMappingManager>().SurfaceMaterial = Material2;
+                    GetComponent<SpatialMappingManager>().SurfaceMaterial = WireframeMaterial;
                 ColoredMeshShown = value;
             }
         }
@@ -146,9 +165,8 @@ public class EFPDriver : MonoBehaviour {
     }
 
     // control of bounds rendering
-    private List<Voxel<byte>> Voxels;
-    private List<Bounds> MeshBounds;
-    private List<float> BoundsRandNums;
+    private bool voxVis = false;
+    private bool meshBoundsVis = false;
     public bool VoxVis
     {
         get { return voxVis; }
@@ -170,6 +188,53 @@ public class EFPDriver : MonoBehaviour {
         }
     }
 
+    // control of coloring bounds
+    private byte minColorVal = 0;
+    public byte MinColorVal
+    {
+        get { return minColorVal; }
+        set { minColorVal = value; }
+    }
+    private byte maxColorVal = 0;
+    public byte MaxColorVal
+    {
+        get { return maxColorVal; }
+        set { maxColorVal = value; }
+    }
+
+    // control of bounds show fraction
+    private float showFrac = 0.5f;
+    public float ShowFrac
+    {
+        get { return showFrac; }
+        set { showFrac = value; }
+    }
+
+    // control of data filter
+    private DataFilter voxGridFilter = DataFilter.mesh;
+    public DataFilter VoxGridFilter
+    {
+        get { return voxGridFilter; }
+        set { voxGridFilter = value; }
+    }
+
+    // control over sensor configuration
+    private bool proxConfig;
+    public bool ProximityConfig
+    {
+        get { return proxConfig; }
+        set { proxConfig = value; }
+    }
+
+    // control mesh transparency
+    private byte meshAlpha = 255;
+    public byte MeshAlpha
+    {
+        get { return meshAlpha; }
+        set { meshAlpha = value; }
+    }
+
+
     // Use this for initialization
     void Awake () {
         // gather dependencies
@@ -182,13 +247,14 @@ public class EFPDriver : MonoBehaviour {
 
         // finish setup
         SensorField.Transform = Camera.main.transform;
-        SensorField.FOV = new Intersector.ViewVector((int)SensorFOV.x, (int)SensorFOV.y);
+        SensorField.FOV = new Intersector.ViewVector((int)(SensorFOV.x * SensorFOVReduction.x), 
+            (int)(SensorFOV.y * SensorFOVReduction.y));
         MeshDensity = MeshMan.Density;
         SensorData = new byte[SensorDataHeight* SensorDataWidth];
 
-        // finish dependendencies setup: some variables must be created in Start()
-        MeshMan.BoundsVis = new Visualizer("MeshBounds", "Marker", "Line", DefaultMaterial);
+        // sync state to default values
         VerticesRendered = DefaultRenderVerts;
+        ProximityConfig = DefaultToProximity;
     }
 
 	// Update is called once per frame
@@ -214,24 +280,63 @@ public class EFPDriver : MonoBehaviour {
         List<Intersector.PointValue<byte>> Updates = 
             VertexInter.ProjectToVisible(SensorData, SensorField, SensorDataHeight, SensorDataWidth, 
             Oc, Observer.ExtraData, MeshGuide,
-            Closest, Furthest, SensorField.Transform.position);
+            Closest, Furthest, SensorField.Transform.position, SensorFOVReduction, ProximityConfig);
         SubStopWatch.Stop();
         IntersectSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
 
         // update voxel grid
         SubStopWatch.Reset();
         SubStopWatch.Start();
-        // reset if filtered to live data only
         if (VoxGridFilter == DataFilter.live)
-            VoxGridMan.Reset();
-        VoxGridMan.Set(Updates, UpdateVoxStruct);
+            VoxGridMan.Reset(); // reset if filtered to live data only
+        VoxGridMan.Set(Updates, true); // true: update voxel structure
         SubStopWatch.Stop();
         VoxGridManSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
 
         // visualize data
         SubStopWatch.Reset();
         SubStopWatch.Start();
+        HandleVis(Updates, MeshGuide);
+        SubStopWatch.Stop();
+        VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
+
+        StopWatch.Stop();
+        DriverSpeed = StopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
+	}
+
+    private void UpdateSensor()
+    {
+        // update position
+        SensorField.Transform.position = Camera.main.transform.position + Offset;
+        SensorField.Transform.eulerAngles = Camera.main.transform.eulerAngles;
+
+        // update data
+        // Normal case: pulls data from SensorDataUpdater
+        if (SensorDataUpdater.CheckNewImage())
+        {
+            SensorDataHeight = SensorDataUpdater.Get_ImageHeight();
+            SensorDataWidth = SensorDataUpdater.Get_ImageWidth();
+            SensorData = SensorDataUpdater.Get_ImageData1D();
+         }
+    }
+
+    // handles all script's visulation for better organization
+    private void HandleVis(List<Intersector.PointValue<byte>> Updates, List<bool> MeshGuide)
+    {
         content = new List<Visualizer.Content>();
+
+        // color mesh
+        if (ColoredMesh)
+        {
+            // color mesh by voxel grid value if Data Filter is not .all. If so, colored all 'no data'
+            if (VoxGridFilter != DataFilter.all)
+                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
+                    VoxGridMan, MinColor, MaxColor, NoDataColor, MinColorVal, MaxColorVal, MeshAlpha);
+            else
+                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
+                    VoxGridMan, NoDataColor, NoDataColor, NoDataColor, MinColorVal, MaxColorVal, MeshAlpha);
+        }
+
         // render spheres
         if (RenderVerts)
         {
@@ -252,6 +357,7 @@ public class EFPDriver : MonoBehaviour {
                 }
             }
         }
+
         // visualize voxels
         if (VoxVis)
         {
@@ -267,67 +373,22 @@ public class EFPDriver : MonoBehaviour {
                 }
             }
         }
+
         // visualize mesh bounds
         if (MeshBoundsVis)
         {
             for (int i = 0; i < MeshBounds.Count; i++)
             {
-                if (BoundsRandNums[i] <= ShowFrac 
+                if (BoundsRandNums[i] <= ShowFrac
                     && VertexInter.AnyInView(MeshManager.IntersectionPoints(MeshBounds[i]), SensorField))
                     content.AddRange(Visualizer.CreateBoundingLines(MeshBounds[i], BoundsLineWidth, BoundColors[i]));
             }
         }
+
         VertVis.Visualize(content);
-        // color mesh
-        if (ColoredMesh )
-        {
-            // color mesh by voxel grid value if Data Filter is not .all. If so, colored all 'no data'
-            if (VoxGridFilter != DataFilter.all)
-                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
-                    VoxGridMan, MinColor, MaxColor, NoDataColor, MinColorVal, MaxColorVal);
-            else
-                Visualizer.ColorMesh(Observer.SurfaceObjects, Observer.ExtraData, MeshGuide,
-                    VoxGridMan, NoDataColor, NoDataColor, NoDataColor, MinColorVal, MaxColorVal);
-        }
-        SubStopWatch.Stop();
-        VertVisSpeed = SubStopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
-
-        
-
-        StopWatch.Stop();
-        DriverSpeed = StopWatch.ElapsedTicks / (double)Stopwatch.Frequency;
-	}
-
-    private void UpdateSensor()
-    {
-        // update position
-        SensorField.Transform.position = Camera.main.transform.position;
-        SensorField.Transform.eulerAngles = Camera.main.transform.eulerAngles;
-
-        // update data
-        // Normal case: pulls data from SensorDataUpdater
-        if (SensorDataUpdater.CheckNewImage())
-        {
-            
-            SensorDataHeight = SensorDataUpdater.Get_ImageHeight();
-            SensorDataWidth = SensorDataUpdater.Get_ImageWidth();
-            SensorData = SensorDataUpdater.Get_ImageData1D();
-         }
-
-
-        /* test case: creates dummy data
-        SensorDataHeight = 500;
-        SensorDataWidth = 250;
-        SensorData = new byte[SensorDataHeight * SensorDataWidth];
-        for (int index = 0; index < SensorData.Length; index++)
-        {
-            int i = index % SensorDataWidth;
-            int j = index / SensorDataWidth;
-            SensorData[i] = (byte)(255f * (float)(i + j) / (SensorDataHeight + SensorDataWidth));
-        }
-        */
     }
 
+    // updates script's stored list of voxels for visualizing voxel bound
     private void UpdateVoxels()
     {
         Voxels = VoxGridMan.Voxels();
@@ -338,6 +399,7 @@ public class EFPDriver : MonoBehaviour {
             BoundColors.Add(Visualizer.RandomColor(BoundsColor1, BoundsColor2));
     }
 
+    // updates script's stored list of mesh bounds for visualizing mesh bound
     private void UpdateMeshBounds()
     {
         MeshBounds = MeshMan.AllMeshBounds();
