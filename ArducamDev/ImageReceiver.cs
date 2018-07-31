@@ -200,9 +200,11 @@ namespace Receiving
         private async System.Threading.Tasks.Task StartServer()
         {
             ServerSocket.MessageReceived += ServerSocket_MessageReceived;
+            Debug.Log("Server Socker Event Handler Added");
             try
             {
                 await ServerSocket.BindServiceNameAsync(LocalPort);
+                Debug.Log("Bound Socket to Port " + LocalPort);
             }
             catch (Exception e)
             {
@@ -232,13 +234,15 @@ namespace Receiving
         //async 
         private async void ServerSocket_MessageReceived(DatagramSocket sender, DatagramSocketMessageReceivedEventArgs args)
         {
+            Debug.Log("MessageReceivedEvent");
             if (ReceivingStatus != AWAITING_IMAGE) return; // dont do anything if not ready to receive
 
             await System.Threading.Tasks.Task.Run(() =>
             {
+                Debug.Log("Getting Data Async");
                 Stream streamIn = args.GetDataStream().AsStreamForRead();
-                byte[] data = ToMemoryStream(streamIn).ToArray(); 
-
+                byte[] data = ToMemoryStream(streamIn).ToArray();
+                Debug.Log("Data array created of length " + data.Length);
                 // enqueue all, continually stack // used for managing events, creates a group of actions
                 if (ReceivingStatus == AWAITING_IMAGE) // unnecessary but clean up later if things work?
                 {
@@ -283,6 +287,7 @@ namespace Receiving
                 default:
                     // add jpeg compressed byte[] received to image buffer
                     byte[] strippedData = new byte[data.Length - NORMAL_PACKET_INDEX_BYTES];
+                    Debug.Log("Stripped Data Array created of length " + strippedData.Length);
                     Array.Copy(data, NORMAL_PACKET_INDEX_BYTES, strippedData, 0, data.Length - NORMAL_PACKET_INDEX_BYTES);
                     ProcessImageArr(strippedData);
                     break;
@@ -298,13 +303,15 @@ namespace Receiving
                 MemoryStream stream = new MemoryStream(img);
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream.AsRandomAccessStream());
                 PixelDataProvider pixelData = await decoder.GetPixelDataAsync();
+                Debug.Log("Pixel Data Created");
 
                 uint width = decoder.PixelWidth;
                 uint height = decoder.PixelHeight;
-                byte[] tmp = pixelData.DetachPixelData();
-                
+                byte[] tmpImageData = pixelData.DetachPixelData();
+                Debug.Log("Pixel Data Detached");
+
                 //synthesize to one band
-                byte[] tmpImgData = tmp; //new byte[(int)width * (int)height];
+                //byte[] tmpImgData = new byte[(int)width * (int)height];
                 /*
                 for (int i = 0; i < tmp.Length; i += 4)
                 {
