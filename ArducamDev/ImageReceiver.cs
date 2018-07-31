@@ -306,6 +306,10 @@ namespace Receiving
                 uint height = decoder.PixelHeight;
                 byte[] tmp = pixelData.DetachPixelData();
                 Debug.Log("Pixel Data Detached. Length: " + tmp.Length + ", Size: (" + width + ", " + height + ")");
+                for (int i = 0; i < 10; i++)
+                {
+                    Debug.Log(string.Format("Pixel {0}: RGBA = ({1}, {2}, {3}, {4})", tmp[1000*i], tmp[1000*i+1], tmp[1000*i+2], tmp[1000*i+3]));
+                }
 
                 //synthesize to one band
                 byte[] tmpImgData = new byte[(int)width * (int)height];
