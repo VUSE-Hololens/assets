@@ -307,7 +307,7 @@ namespace Receiving
 
                 uint width = decoder.PixelWidth;
                 uint height = decoder.PixelHeight;
-                byte[] tmpImageData = pixelData.DetachPixelData();
+                byte[] tmpImgData = pixelData.DetachPixelData();
                 Debug.Log("Pixel Data Detached");
 
                 //synthesize to one band
