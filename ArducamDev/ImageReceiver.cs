@@ -335,7 +335,7 @@ namespace Receiving
                     ID_fps = 1.0 / (DateTime.Now.Subtract(time).TotalSeconds);
                     time = DateTime.Now;
                 }
-                tmp = null;
+                //tmp = null;
                 tmpImgData = null;
             }
             catch (Exception ex)
