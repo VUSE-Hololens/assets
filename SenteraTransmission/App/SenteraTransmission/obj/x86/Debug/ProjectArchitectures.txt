@@ -1,0 +1,2 @@
+C:\Users\henry\OneDrive\Documents\Hololens\SenteraTransmission\App\GeneratedProjects\UWP\Assembly-CSharp\Assembly-CSharp.csproj;x86
+C:\Users\henry\OneDrive\Documents\Hololens\SenteraTransmission\App\SenteraTransmission\SenteraTransmission.csproj;x86
