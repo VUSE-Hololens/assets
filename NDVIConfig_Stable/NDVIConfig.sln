@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDVIConfig", "NDVIConfig.csproj", "{89B320D9-965C-1FCA-20FB-EC1155A92425}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDVIConfig.Editor", "NDVIConfig.Editor.csproj", "{49A0855E-6D54-049C-B396-B799001F74E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89B320D9-965C-1FCA-20FB-EC1155A92425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89B320D9-965C-1FCA-20FB-EC1155A92425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89B320D9-965C-1FCA-20FB-EC1155A92425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89B320D9-965C-1FCA-20FB-EC1155A92425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A0855E-6D54-049C-B396-B799001F74E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A0855E-6D54-049C-B396-B799001F74E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A0855E-6D54-049C-B396-B799001F74E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A0855E-6D54-049C-B396-B799001F74E9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
