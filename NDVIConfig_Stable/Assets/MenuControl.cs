@@ -28,6 +28,11 @@ public class MenuControl : MonoBehaviour
     public GameObject FilterButtonContainer;
     [Tooltip("Button object for configuration toggle")]
     public GameObject ConfigButtonContainer;
+    [Tooltip("Button object for SavePoint Button")]
+    public GameObject SavePOIButtonContainer;
+    [Tooltip("Button object for Export Button")]
+    public GameObject ExportButtonContainer;
+
     // sliders
     public GameObject OcclusionSlider;
     public GameObject MeshDensitySlider;
@@ -41,6 +46,8 @@ public class MenuControl : MonoBehaviour
     [Tooltip("Diagnostics parent GameObject")]
     public GameObject DiagParent;
     public GameObject EFP;
+    public GameObject POIContainer;
+    public GameObject HUDContainer;
 
 
     // other variables
@@ -50,6 +57,10 @@ public class MenuControl : MonoBehaviour
     private HoloToolkit.Unity.Buttons.CompoundButton MaterialButton;
     private HoloToolkit.Unity.Buttons.CompoundButton FilterButton;
     private HoloToolkit.Unity.Buttons.CompoundButton ConfigButton;
+    private HoloToolkit.Unity.Buttons.CompoundButton SavePOIButton;
+    private HoloToolkit.Unity.Buttons.CompoundButton ExportButton;
+
+
 
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl OcSliderGC;
     private HoloToolkit.Examples.InteractiveElements.SliderGestureControl MeshDensitySliderGC;
@@ -62,6 +73,8 @@ public class MenuControl : MonoBehaviour
 
     private BoundsState BState = BoundsState.off;
     private DataFilter FilterState = DataFilter.mesh;
+    private int exports = 0;
+
 
     private void Start()
     {
@@ -72,6 +85,10 @@ public class MenuControl : MonoBehaviour
         MaterialButton = MaterialButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
         FilterButton = FilterButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
         ConfigButton = ConfigButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
+        SavePOIButton = SavePOIButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
+        ExportButton = ExportButtonContainer.GetComponent<HoloToolkit.Unity.Buttons.CompoundButton>();
+
+
 
         // declare event handlers
         DiagButton.OnButtonPressed += new System.Action<GameObject>(ToggleDiag);
@@ -80,6 +97,10 @@ public class MenuControl : MonoBehaviour
         MaterialButton.OnButtonPressed += new System.Action<GameObject>(ToggleMaterial);
         FilterButton.OnButtonPressed += new System.Action<GameObject>(ToggleFilter);
         ConfigButton.OnButtonPressed += new System.Action<GameObject>(ToggleConfig);
+        SavePOIButton.OnButtonPressed += new System.Action<GameObject>(SavePOI);
+        ExportButton.OnButtonPressed += new System.Action<GameObject>(Export);
+
+
 
         // add sliders as listeners
         OcSliderGC = OcclusionSlider.GetComponent<HoloToolkit.Examples.InteractiveElements.SliderGestureControl>();
@@ -106,6 +127,8 @@ public class MenuControl : MonoBehaviour
         UpdateMaterialLabel();
         UpdateFilterLabel();
         UpdateConfigLabel();
+        UpdateSavePOILabel();
+        UpdateExportLabel();
 
         // finish syncing state
         UpdateMeshDensity(MeshDensitySliderGC.SliderValue); // also updates oc, voxel res
@@ -121,8 +144,8 @@ public class MenuControl : MonoBehaviour
     /// </summary>
     private void ToggleDiag(GameObject button)
     {
-        DiagParent.GetComponent<DiagnosticsControl>().ShowBoard = 
-            !DiagParent.GetComponent<DiagnosticsControl>().ShowBoard;
+        DiagParent.GetComponent<ShowHide>().Toggle();
+        HUDContainer.GetComponent<ShowHide>().Toggle();
 
         UpdateDiagLabel();
     }
@@ -132,13 +155,13 @@ public class MenuControl : MonoBehaviour
     /// </summary>
     private void UpdateDiagLabel()
     {
-        string On = "Hide Diagnostics";
-        string Off = "Show Diagnostics";
+        string Shown = "Hide Diagnostics/HUD";
+        string Hidden = "Show Diagnostics/HUD";
 
-        if (DiagParent.GetComponent<DiagnosticsControl>().ShowBoard)
-            DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = On;
+        if (DiagParent.GetComponent<ShowHide>().State == ShowHide.Visibility.Shown)
+            DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Shown;
         else
-            DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Off;
+            DiagButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = Hidden;
     }
 
     /// <summary>
@@ -268,6 +291,50 @@ public class MenuControl : MonoBehaviour
         EFP.GetComponent<EFPDriver>().ProximityConfig = !EFP.GetComponent<EFPDriver>().ProximityConfig;
 
         UpdateConfigLabel();
+    }
+
+    /// <summary>
+    /// triggers place POI method
+    /// </summary>
+    private void SavePOI(GameObject button)
+    {
+        POIContainer.GetComponent<POIControl>().PlaceMarker();
+        UpdateSavePOILabel();
+        
+    }
+
+    /// <summary>
+    /// Updates the save POI button label
+    /// </summary>
+    private void UpdateSavePOILabel()
+    {
+        string Save = "Save POI";
+        SavePOIButton.transform.Find("Text").GetComponent<TextMesh>().text = Save;
+    }
+
+    /// <summary>
+    /// Exports Voxel Grid, POIs to .csv's
+    /// </summary>
+    private void Export(GameObject button)
+    {
+        EFP.GetComponent<EFPDriver>().VoxGridMan.ExportVoxelGrid();
+        POIContainer.GetComponent<POIControl>().ExportPOIs();
+        exports++;
+        UpdateExportLabel();
+    }
+
+    /// <summary>
+    /// Updates the save POI button label, allows for it to update dynamically
+    /// </summary>
+    private void UpdateExportLabel()
+    {
+        string export_label;
+        if (exports == 0)
+            export_label = "Export";
+        else
+            export_label = string.Format("Export ({0} Successful)", exports);
+
+        ExportButtonContainer.transform.Find("Text").GetComponent<TextMesh>().text = export_label;
     }
 
     /// <summary>

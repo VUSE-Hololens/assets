@@ -6,7 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+#if WINDOWS_UWP
+using Windows.Storage;
+#endif
+
 
 /// <summary>
 /// Interface for voxelated data structure. Currently setup to store byte data.
@@ -54,6 +59,11 @@ public class VoxelGridManager<T>
     public DateTime lastUpdate { get; private set; }
 
     /// <summary>
+    /// List of all the saved points of interest
+    /// </summary>
+    private List<POI> savedPoints;
+
+    /// <summary>
     /// Constructor
     /// </summary>
     public VoxelGridManager(Vector3 myStartingPoint = new Vector3(), float myMinSize = 0.1f, float myDefaultSize = 1f)
@@ -63,6 +73,7 @@ public class VoxelGridManager<T>
         defaultSize = myDefaultSize;
         voxGrid = new Octree<T>(startingPoint, minSize, defaultSize);
         lastUpdate = DateTime.Now;
+        savedPoints = new List<POI>();
     }
 
     // updating resolution resets all data.
@@ -129,4 +140,83 @@ public class VoxelGridManager<T>
     {
         return voxGrid.NonNullCell(pointToGet);
     }
+
+    /// <summary>
+    /// saves the point specified by user as a POI in savedPoints
+    /// </summary>
+    public void SavePoint(Vector3 pointToSave, string labelToSave)
+    {
+        if (!Contains(pointToSave))
+        {
+            throw new ArgumentOutOfRangeException("pointToSave", "not contained in Voxel Grid.");
+        }
+        savedPoints.Add(new POI(pointToSave, labelToSave));
+
+    }
+
+    public void ExportVoxelGrid()
+    {
+#if WINDOWS_UWP
+        RunExportVoxelGrid();
+#endif
+    }
+
+#if WINDOWS_UWP
+    async private void RunExportVoxelGrid()
+    {
+        //Folder where the export should be placed
+        var pictureLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Pictures);
+        string folderName = pictureLibrary.SaveFolder.Path;
+        Debug.Log(String.Format("folderName creation success, folderName: {0}", folderName));
+
+        //List to hold the values of the voxel grid
+        List<Voxel<T>> exportList = Voxels();
+        //String to hold the output for the voxel grid files
+        StringBuilder exportOut = new StringBuilder();
+
+        //path for Voxel Grid Export
+        string fileName = "VoxGrid " + DateTime.Now.ToString("yyyy-MM-dd HH_mm") + ".csv";
+        string pathString = System.IO.Path.Combine(folderName, fileName);
+
+
+        //Add the VoxelGrid Sensor values to the .csv
+        exportOut.Append("Sensor Value,X,Y,Z\n");
+        foreach (var vox in exportList)
+        {
+            if (!vox.nullVox)
+            {
+                exportOut.AppendFormat("{0},{1},{2},{3}\n", vox.value, vox.point.x, vox.point.y, vox.point.z);
+            }
+
+        }
+
+        CreateCSV(pathString, exportOut);
+    }
+#endif
+
+    private Boolean CreateCSV(string pathString, StringBuilder exportOut)
+    {
+        //create voxGrid file
+        try
+        {
+            Debug.Log(String.Format("Exporting VoxelGrid Success... File Path: {0}", pathString));
+            //Check not to overwrite
+            if (!System.IO.File.Exists(pathString))
+            {
+                //create file
+                using (System.IO.StreamWriter sw = System.IO.File.CreateText(pathString))
+                {
+                    sw.WriteLine(exportOut);
+                }
+            }
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(String.Format("Exception exporting VoxelGrid... File Path: {0}", pathString));
+            return false;
+        }
+
+    }
+
 }

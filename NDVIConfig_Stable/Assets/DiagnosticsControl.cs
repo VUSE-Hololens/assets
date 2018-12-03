@@ -1,6 +1,6 @@
 ﻿/// DiagnosticControl
-/// Controller for Diagnostics Message for EFP Tester v2
-/// Mark Scherer, June 2018
+/// Controller for Diagnostics Message for EFP Tester v3
+/// Mark Scherer, June 2018; updated Nov 2018
 
 using System;
 using System.Text;
@@ -11,18 +11,12 @@ using HoloToolkit.Unity.SpatialMapping;
 public class DiagnosticsControl : MonoBehaviour {
 
     // Inspector variables
-    [Tooltip("Prefab of diagnostic board text")]
-    public GameObject DiagTextPrefab;
-    [Tooltip("Prefab of diagnostics board background")]
-    public GameObject DiagBackgroundPrefab;
+    [Tooltip("Diagnostic board text")]
+    public GameObject DiagText;
     [Tooltip("EFP container GameObject.")]
     public GameObject EFPContainer;
-    [Tooltip("Default to showing diagnostics board?")]
-    public bool DefaultToShow = true;
 
     // dependencies
-    private GameObject DiagText;
-    private GameObject DiagBackground;
     private TextMesh DiagnosticsTextMesh;
     private EFPDriver Driver;
     private SpatialMappingObserver Observer;
@@ -32,79 +26,21 @@ public class DiagnosticsControl : MonoBehaviour {
     private long Seconds = 0;
     private StringBuilder DiagnosticsMessage = new StringBuilder(" ", 1000);
 
-    // board visibility flag
-    private bool BoardExists;
-
-    // control over board visibility
-    public bool ShowBoard
-    {
-        get
-        {
-            return BoardExists;
-        }
-        set
-        {
-            if (value != BoardExists)
-            {
-                if (value)
-                {
-                    CreateDiagnostics();
-                    BoardExists = true;
-                } else
-                {
-                    DeleteContent();
-                    BoardExists = false;
-                }
-
-            }
-        }
-    }
-
     // Use this for initialization
     void Start () {
         // gather static dependenices
         Driver = EFPContainer.GetComponent<EFPDriver>();
         Observer = EFPContainer.GetComponent<SpatialMappingObserver>();
-
-        BoardExists = DefaultToShow;
-        if (ShowBoard)
-            CreateDiagnostics();
+        DiagnosticsTextMesh = DiagText.GetComponent<TextMesh>();
 
         StopWatch.Start();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (ShowBoard)
-        {
             UpdateDiagnostics();
             DiagnosticsTextMesh.text = DiagnosticsMessage.ToString();
-        }
 	}
-
-    /// <summary>
-    /// Creates contents of diagnostics board as new objects.
-    /// </summary>
-    private void CreateDiagnostics()
-    {
-        // double check board does not exist
-
-        // create text
-        DiagText = Instantiate(DiagTextPrefab, gameObject.transform, false);
-        DiagnosticsTextMesh = DiagText.GetComponent<TextMesh>();
-
-        // create background
-        DiagBackground = Instantiate(DiagBackgroundPrefab, gameObject.transform, false);
-    }
-
-    /// <summary>
-    /// Deletes objects containing contents of diagnostics board.
-    /// </summary>
-    private void DeleteContent()
-    {
-        foreach (Transform child in gameObject.transform)
-            Destroy(child.gameObject);
-    }
 
     /// <summary>
     /// Updates contents of DiagnosticsMessage.

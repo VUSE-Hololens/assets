@@ -139,24 +139,33 @@ namespace HoloToolkit.Examples.InteractiveElements
             AlignmentVector = mSliderVector;
         }
 
+        // updates slider according to gesture !
         public override void ManipulationUpdate(Vector3 startGesturePosition, Vector3 currentGesturePosition, Vector3 startHeadOrigin, Vector3 startHeadRay, GestureInteractive.GestureManipulationState gestureState)
         {
+            // sync alignment vectors: base.AlignmentVector, this.mSliderVector, this.mCachedRotation
+            // unclear where these are used?
             if (AlignmentVector != SliderBar.transform.right)
             {
+                // vector in direction of slider
                 mSliderVector = SliderBar.transform.InverseTransformPoint(mStartCenter + SliderBar.transform.right * mSliderMagnitude / 2) - SliderBar.transform.InverseTransformPoint(mStartCenter - SliderBar.transform.right * mSliderMagnitude / 2);
                 AlignmentVector = SliderBar.transform.right;
 
                 mCachedRotation = SliderBar.transform.rotation;
             }
 
+            // run base method
+            // what does this do?
             base.ManipulationUpdate(startGesturePosition, currentGesturePosition, startHeadOrigin, startHeadRay, gestureState);
 
             // get the current delta
+            // CurrentDistance: from base, distance of current gesture
             float delta = (CurrentDistance > 0) ? CurrentPercentage : -CurrentPercentage;
 
             // combine the delta with the current slider position so the slider does not start over every time
+            // mDeltaValue: the new slider position
             mDeltaValue = Mathf.Clamp01(delta + mCachedValue);
 
+            // set slider value appropriately
             if (!Centered)
             {
                 SliderValue = mDeltaValue * mValueSpan + MinSliderValue;
@@ -166,8 +175,10 @@ namespace HoloToolkit.Examples.InteractiveElements
                 SliderValue = mDeltaValue * mValueSpan * 2 - mValueSpan;
             }
 
+            // update visual gameobjects accordingly
             UpdateVisuals();
 
+            // cache value if gesture ended
             if (gestureState == GestureInteractive.GestureManipulationState.None)
             {
                 // gesture ended - cache the current delta

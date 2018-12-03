@@ -31,13 +31,13 @@
     <AppXManifest Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\bin\x86\Release\Core\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2018-10-26T21:41:05.794</Modified>
+      <Modified>2018-12-03T19:47:03.094</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\bin\x86\Release\NDVIConfig.exe">
       <PackagePath>entrypoint\NDVIConfig.exe</PackagePath>
-      <Modified>2018-10-26T21:40:30.164</Modified>
+      <Modified>2018-12-03T19:46:24.104</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\.nuget\packages\microsoft.applicationinsights\1.0.0\lib\portable-win81+wpa81\Microsoft.ApplicationInsights.dll">
       <PackagePath>Microsoft.ApplicationInsights.dll</PackagePath>
@@ -501,7 +501,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Resource.res">
       <PackagePath>Resource.res</PackagePath>
-      <Modified>2018-10-26T21:39:26.841</Modified>
+      <Modified>2018-12-03T19:44:10.921</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Assets\SplashScreen.scale-200.png">
       <PackagePath>Assets\SplashScreen.scale-200.png</PackagePath>
@@ -559,15 +559,15 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\boot.config">
       <PackagePath>Data\boot.config</PackagePath>
-      <Modified>2018-10-26T21:37:51.766</Modified>
+      <Modified>2018-12-03T19:42:37.118</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\globalgamemanagers">
       <PackagePath>Data\globalgamemanagers</PackagePath>
-      <Modified>2018-10-26T21:37:15.131</Modified>
+      <Modified>2018-12-03T19:41:11.410</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\level0">
       <PackagePath>Data\level0</PackagePath>
-      <Modified>2018-10-26T21:37:10.602</Modified>
+      <Modified>2018-12-03T19:41:06.068</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\Resources\unity default resources">
       <PackagePath>Data\Resources\unity default resources</PackagePath>
@@ -575,35 +575,35 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\Resources\unity_builtin_extra">
       <PackagePath>Data\Resources\unity_builtin_extra</PackagePath>
-      <Modified>2018-10-26T21:37:51.758</Modified>
+      <Modified>2018-12-03T19:42:37.100</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\globalgamemanagers.assets">
       <PackagePath>Data\globalgamemanagers.assets</PackagePath>
-      <Modified>2018-10-26T21:37:15.306</Modified>
+      <Modified>2018-12-03T19:41:11.655</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\sharedassets0.assets">
       <PackagePath>Data\sharedassets0.assets</PackagePath>
-      <Modified>2018-10-26T21:37:44.555</Modified>
+      <Modified>2018-12-03T19:42:09.970</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\level0.resS">
       <PackagePath>Data\level0.resS</PackagePath>
-      <Modified>2018-10-26T21:37:10.575</Modified>
+      <Modified>2018-12-03T19:41:06.057</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\sharedassets0.assets.resS">
       <PackagePath>Data\sharedassets0.assets.resS</PackagePath>
-      <Modified>2018-10-26T21:37:44.516</Modified>
+      <Modified>2018-12-03T19:42:09.956</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\managedAssemblies.txt">
       <PackagePath>Data\managedAssemblies.txt</PackagePath>
-      <Modified>2018-10-26T21:39:26.470</Modified>
+      <Modified>2018-12-03T19:44:10.717</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\nativePlugins.txt">
       <PackagePath>Data\nativePlugins.txt</PackagePath>
-      <Modified>2018-10-26T21:39:26.476</Modified>
+      <Modified>2018-12-03T19:44:10.723</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Data\sharedassets0.resource">
       <PackagePath>Data\sharedassets0.resource</PackagePath>
-      <Modified>2018-10-26T21:37:44.582</Modified>
+      <Modified>2018-12-03T19:42:09.983</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Program Files %28x86%29\Windows Kits\10\UnionMetadata\10.0.17134.0\Windows.winmd">
       <PackagePath>WinMetadata\Windows.winmd</PackagePath>
@@ -612,235 +612,235 @@
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\bin\x86\Release\resources.pri">
       <PackagePath>resources.pri</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2018-10-26T21:40:34.732</Modified>
+      <Modified>2018-12-03T19:46:32.076</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.TextRenderingModule.dll">
       <PackagePath>UnityEngine.TextRenderingModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.499</Modified>
+      <Modified>2018-12-03T19:46:53.695</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.TerrainPhysicsModule.dll">
       <PackagePath>UnityEngine.TerrainPhysicsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.555</Modified>
+      <Modified>2018-12-03T19:46:53.719</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.TerrainModule.dll">
       <PackagePath>UnityEngine.TerrainModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.621</Modified>
+      <Modified>2018-12-03T19:46:53.749</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.TilemapModule.dll">
       <PackagePath>UnityEngine.TilemapModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.698</Modified>
+      <Modified>2018-12-03T19:46:53.822</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UIElementsModule.dll">
       <PackagePath>UnityEngine.UIElementsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.816</Modified>
+      <Modified>2018-12-03T19:46:53.891</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.SharedInternalsModule.dll">
       <PackagePath>UnityEngine.SharedInternalsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.893</Modified>
+      <Modified>2018-12-03T19:46:53.920</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ScreenCaptureModule.dll">
       <PackagePath>UnityEngine.ScreenCaptureModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.922</Modified>
+      <Modified>2018-12-03T19:46:53.941</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.SpriteMaskModule.dll">
       <PackagePath>UnityEngine.SpriteMaskModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.956</Modified>
+      <Modified>2018-12-03T19:46:53.965</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.StyleSheetsModule.dll">
       <PackagePath>UnityEngine.StyleSheetsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.994</Modified>
+      <Modified>2018-12-03T19:46:53.993</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.SpriteShapeModule.dll">
       <PackagePath>UnityEngine.SpriteShapeModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.027</Modified>
+      <Modified>2018-12-03T19:46:54.085</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.VideoModule.dll">
       <PackagePath>UnityEngine.VideoModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.064</Modified>
+      <Modified>2018-12-03T19:46:54.151</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.VehiclesModule.dll">
       <PackagePath>UnityEngine.VehiclesModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.094</Modified>
+      <Modified>2018-12-03T19:46:54.200</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityWebRequestWWWModule.dll">
       <PackagePath>UnityEngine.UnityWebRequestWWWModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.126</Modified>
+      <Modified>2018-12-03T19:46:54.247</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.VRModule.dll">
       <PackagePath>UnityEngine.VRModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.202</Modified>
+      <Modified>2018-12-03T19:46:54.350</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.WindModule.dll">
       <PackagePath>UnityEngine.WindModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.236</Modified>
+      <Modified>2018-12-03T19:46:54.387</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.WebModule.dll">
       <PackagePath>UnityEngine.WebModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.283</Modified>
+      <Modified>2018-12-03T19:46:54.442</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityAnalyticsModule.dll">
       <PackagePath>UnityEngine.UnityAnalyticsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.319</Modified>
+      <Modified>2018-12-03T19:46:54.491</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UNETModule.dll">
       <PackagePath>UnityEngine.UNETModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.383</Modified>
+      <Modified>2018-12-03T19:46:54.618</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UIModule.dll">
       <PackagePath>UnityEngine.UIModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.420</Modified>
+      <Modified>2018-12-03T19:46:54.647</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityConnectModule.dll">
       <PackagePath>UnityEngine.UnityConnectModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.452</Modified>
+      <Modified>2018-12-03T19:46:54.673</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityWebRequestTextureModule.dll">
       <PackagePath>UnityEngine.UnityWebRequestTextureModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.517</Modified>
+      <Modified>2018-12-03T19:46:54.790</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityWebRequestModule.dll">
       <PackagePath>UnityEngine.UnityWebRequestModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.569</Modified>
+      <Modified>2018-12-03T19:46:54.849</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UnityWebRequestAudioModule.dll">
       <PackagePath>UnityEngine.UnityWebRequestAudioModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.617</Modified>
+      <Modified>2018-12-03T19:46:54.888</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.PhysicsModule.dll">
       <PackagePath>UnityEngine.PhysicsModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.680</Modified>
+      <Modified>2018-12-03T19:46:54.925</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.AssetBundleModule.dll">
       <PackagePath>UnityEngine.AssetBundleModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.719</Modified>
+      <Modified>2018-12-03T19:46:54.946</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ARModule.dll">
       <PackagePath>UnityEngine.ARModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.764</Modified>
+      <Modified>2018-12-03T19:46:54.978</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.AnimationModule.dll">
       <PackagePath>UnityEngine.AnimationModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.818</Modified>
+      <Modified>2018-12-03T19:46:55.016</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.AudioModule.dll">
       <PackagePath>UnityEngine.AudioModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.895</Modified>
+      <Modified>2018-12-03T19:46:55.057</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.CrashReportingModule.dll">
       <PackagePath>UnityEngine.CrashReportingModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:57.946</Modified>
+      <Modified>2018-12-03T19:46:55.133</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.CoreModule.dll">
       <PackagePath>UnityEngine.CoreModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.484</Modified>
+      <Modified>2018-12-03T19:46:55.567</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ClothModule.dll">
       <PackagePath>UnityEngine.ClothModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.543</Modified>
+      <Modified>2018-12-03T19:46:55.723</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.AIModule.dll">
       <PackagePath>UnityEngine.AIModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.607</Modified>
+      <Modified>2018-12-03T19:46:55.858</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.AccessibilityModule.dll">
       <PackagePath>UnityEngine.AccessibilityModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.644</Modified>
+      <Modified>2018-12-03T19:46:55.930</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.JSONSerializeModule.dll">
       <PackagePath>UnityEngine.JSONSerializeModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.675</Modified>
+      <Modified>2018-12-03T19:46:55.981</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.InputModule.dll">
       <PackagePath>UnityEngine.InputModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.711</Modified>
+      <Modified>2018-12-03T19:46:56.023</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ParticlesLegacyModule.dll">
       <PackagePath>UnityEngine.ParticlesLegacyModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.743</Modified>
+      <Modified>2018-12-03T19:46:56.099</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.Physics2DModule.dll">
       <PackagePath>UnityEngine.Physics2DModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.795</Modified>
+      <Modified>2018-12-03T19:46:56.161</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.PerformanceReportingModule.dll">
       <PackagePath>UnityEngine.PerformanceReportingModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.831</Modified>
+      <Modified>2018-12-03T19:46:56.271</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ParticleSystemModule.dll">
       <PackagePath>UnityEngine.ParticleSystemModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.889</Modified>
+      <Modified>2018-12-03T19:46:56.358</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.GameCenterModule.dll">
       <PackagePath>UnityEngine.GameCenterModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:58.947</Modified>
+      <Modified>2018-12-03T19:46:56.439</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.dll">
       <PackagePath>UnityEngine.dll</PackagePath>
-      <Modified>2018-10-26T21:38:40.139</Modified>
+      <Modified>2018-12-03T19:43:25.468</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.DirectorModule.dll">
       <PackagePath>UnityEngine.DirectorModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.008</Modified>
+      <Modified>2018-12-03T19:46:56.500</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.GridModule.dll">
       <PackagePath>UnityEngine.GridModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.057</Modified>
+      <Modified>2018-12-03T19:46:56.618</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.IMGUIModule.dll">
       <PackagePath>UnityEngine.IMGUIModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.164</Modified>
+      <Modified>2018-12-03T19:46:56.679</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.ImageConversionModule.dll">
       <PackagePath>UnityEngine.ImageConversionModule.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.212</Modified>
+      <Modified>2018-12-03T19:46:56.714</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Newtonsoft.Json.dll">
       <PackagePath>Newtonsoft.Json.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.319</Modified>
+      <Modified>2018-12-03T19:46:56.807</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.Timeline.dll">
       <PackagePath>UnityEngine.Timeline.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.423</Modified>
+      <Modified>2018-12-03T19:46:56.887</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\nunit.framework.dll">
       <PackagePath>nunit.framework.dll</PackagePath>
-      <Modified>2018-10-26T21:40:59.577</Modified>
+      <Modified>2018-12-03T19:46:56.998</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.UI.dll">
       <PackagePath>UnityEngine.UI.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.035</Modified>
+      <Modified>2018-12-03T19:46:57.159</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.SpatialTracking.dll">
       <PackagePath>UnityEngine.SpatialTracking.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.071</Modified>
+      <Modified>2018-12-03T19:46:57.212</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.Analytics.dll">
       <PackagePath>UnityEngine.Analytics.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.126</Modified>
+      <Modified>2018-12-03T19:46:57.280</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.HoloLens.dll">
       <PackagePath>UnityEngine.HoloLens.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.248</Modified>
+      <Modified>2018-12-03T19:46:57.368</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.StandardEvents.dll">
       <PackagePath>UnityEngine.StandardEvents.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.365</Modified>
+      <Modified>2018-12-03T19:46:57.441</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\UnityEngine.Networking.dll">
       <PackagePath>UnityEngine.Networking.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.592</Modified>
+      <Modified>2018-12-03T19:46:57.580</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\GLTFSerializationUWP.dll">
       <PackagePath>GLTFSerializationUWP.dll</PackagePath>
-      <Modified>2018-10-26T21:41:00.665</Modified>
+      <Modified>2018-12-03T19:46:57.661</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\Assembly-CSharp.dll">
       <PackagePath>Assembly-CSharp.dll</PackagePath>
-      <Modified>2018-10-26T21:40:56.437</Modified>
+      <Modified>2018-12-03T19:46:53.665</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\Mark Scherer\Hololens Dev\NDVIConfig\App\NDVIConfig\bin\x86\Release\Core\NDVIConfig.exe">
       <PackagePath>NDVIConfig.exe</PackagePath>
-      <Modified>2018-10-26T21:41:05.787</Modified>
+      <Modified>2018-12-03T19:47:03.087</Modified>
     </AppxPackagedFile>
   </ItemGroup>
   <ItemGroup>

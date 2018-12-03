@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1110a01f-af5a-4a4d-a421-a6fc6d40815a}</ProjectGuid>
+    <ProjectGuid>{48be9a18-84b8-426d-9f73-99376eeacc45}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AssemblyCSharpWSA</RootNamespace>
@@ -1885,6 +1885,12 @@
     <Compile Include="$(UnityProjectDir)Assets\HoloToolkit\UX\Scripts\UsabilityUtilities.cs">
       <Link>HoloToolkit\UX\Scripts\UsabilityUtilities.cs</Link>
     </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\HUDManager.cs">
+      <Link>HUDManager.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\HUDPosition.cs">
+      <Link>HUDPosition.cs</Link>
+    </Compile>
     <Compile Include="$(UnityProjectDir)Assets\ImageReceiver.cs">
       <Link>ImageReceiver.cs</Link>
     </Compile>
@@ -1897,11 +1903,17 @@
     <Compile Include="$(UnityProjectDir)Assets\MeshManager.cs">
       <Link>MeshManager.cs</Link>
     </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\MiniMapManager.cs">
+      <Link>MiniMapManager.cs</Link>
+    </Compile>
     <Compile Include="$(UnityProjectDir)Assets\NDVIDataBytes.cs">
       <Link>NDVIDataBytes.cs</Link>
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\Octree.cs">
       <Link>Octree.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\POIControl.cs">
+      <Link>POIControl.cs</Link>
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\Receiver.cs">
       <Link>Receiver.cs</Link>
@@ -1911,6 +1923,9 @@
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\Serializer.cs">
       <Link>Serializer.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\ShowHide.cs">
+      <Link>ShowHide.cs</Link>
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\SliderSrc\ButtonThemeWidget.cs">
       <Link>SliderSrc\ButtonThemeWidget.cs</Link>
@@ -1962,6 +1977,9 @@
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\SliderTester.cs">
       <Link>SliderTester.cs</Link>
+    </Compile>
+    <Compile Include="$(UnityProjectDir)Assets\SmartCursor.cs">
+      <Link>SmartCursor.cs</Link>
     </Compile>
     <Compile Include="$(UnityProjectDir)Assets\SpatialMappingObserver.cs">
       <Link>SpatialMappingObserver.cs</Link>

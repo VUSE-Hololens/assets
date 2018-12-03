@@ -5,10 +5,10 @@
 # Write a line equal to 'overwrite-all' (without quotes) to overwrite everything (preserved accross builds)
 # Write a line equal to 'keep-all' (without quotes) to keep files regardless their modification (preserved accross builds)
 # Default behavior is to never overwrite files
-NDVIConfig.sln: 6801ED87AF37801B42D1428FB7B144F8
+NDVIConfig.sln: FED6CD6AA7761CA94F85DB0897E8C2C3
 GeneratedProjects\UWP\Assembly-CSharp\project.json: 1D02BC64BAC0D041019673A1C4C51737
 NDVIConfig\App.cs: B241A35152FC8A25F7B3C7BED54A0052
-NDVIConfig\NDVIConfig.csproj: C9D7513B1FB2B34B843DB36277AD03C2
+NDVIConfig\NDVIConfig.csproj: A1EDDBA1CE89D3EE8935BE3C22186611
 NDVIConfig\NDVIConfig.csproj.user: BEFB8AC4886C4CFDD3C68445D6F19B04
 NDVIConfig\Package.appxmanifest: D6EFD38387BE6012BC2A1FAA5CFE5BD4
 NDVIConfig\project.json: 1D02BC64BAC0D041019673A1C4C51737

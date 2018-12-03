@@ -4,7 +4,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <RemoteDebugMachine>172.20.10.10</RemoteDebugMachine>
+    <RemoteDebugMachine>10.66.179.217</RemoteDebugMachine>
     <AuthenticationMode>Universal</AuthenticationMode>
     <RemoteDebugEnabled>true</RemoteDebugEnabled>
   </PropertyGroup>

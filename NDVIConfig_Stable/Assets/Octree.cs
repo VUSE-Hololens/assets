@@ -733,7 +733,8 @@ public class Voxel<T> : OctreeComponent<T>
     {
         // return list with just copy of this voxel.
         List<Voxel<T>> result = new List<Voxel<T>>();
-        result.Add(new Voxel<T>(min, max, minSize, point, value));
+        //result.Add(new Voxel<T>(min, max, minSize, point, value));
+        result.Add(this);
         return result; ;
     }
 
